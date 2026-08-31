@@ -1,0 +1,35 @@
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <st/f4/stm32f407v(e-g)tx-pinctrl.dtsi>
+
+/ {
+	aliases {
+		red-led = &led0;
+		readings-display = &display0;
+	};
+
+	leds {
+		led0: pda5_led {
+			gpios = <&gpiod 5 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+&i2c1 {
+	status = "okay";
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+
+	display0: ssd1306@3C {
+		compatible = "solomon,ssd1306";
+		reg = <0x3C>;
+		status = "okay";
+
+		height = <64>;
+		width = <128>;
+		segment-offset = <0>;
+		page-offset = <0>;
+		display-offset = <0>;
+		multiplex-ratio = <63>;
+		prechargep = <0x22>;
+	};
+};
