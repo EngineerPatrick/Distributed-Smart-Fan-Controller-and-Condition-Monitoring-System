@@ -10,10 +10,10 @@ target_sources(app
 	PRIVATE
 	src/main.cpp
 	src/display_test.cpp
-	src/zephyr_cfb.cpp
+	src/char_framebuff.cpp
 
 	PUBLIC
 	FILE_SET HEADERS
 	FILES
-	src/display.hpp
+	src/char_framebuff.hpp
 )
