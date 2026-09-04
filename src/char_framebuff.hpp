@@ -5,31 +5,58 @@
 #include <cstdint>
 #include <string_view>
 #include <zephyr/device.h>
-#include <zephyr/display/cfb.h>
 
-enum class DisplayErrors:uint8_t {
-	Ok,
-	Device,
-	Param,
-	CfbInit,
-	CfbOperation
-};
+namespace char_framebuff {
+	struct TargetDisplay {
+		const struct device* device_ptr = nullptr;
+		size_t width_px = 0;
+		size_t height_px = 0;
+	};
 
-struct DisplayErrorReport {
-	DisplayErrors display;
-	int cfb;
-};
+	enum class ErrorCode {
+		Ok,
+		DeviceUnready,
+		DisplayResolution,
+		Param,
+		CfbInit,
+		CfbFontSet,
+		CfbFontSizeGet,
+		CfbFontKerningSet,
+		CfbScreenClear,
+		CfbStringLoad,
+		CfbScreenPrint
+	};
 
-class MonochromeDisplay {
-	public:
-		MonochromeDisplay(const struct device* const monochrome_display_dt_spec);
-		DisplayErrors screen_clear(void);
-		DisplayErrors string_load(const std::string_view input_string, const size_t row_idx, const size_t column_idx);
-		DisplayErrors screen_print(void);
+	struct ErrorState {
+		ErrorCode code = char_framebuff::ErrorCode::Ok;
+		int return_value = 0;
+	};
 
-	private:
-		const struct device* const dt_spec;
-		DisplayErrorReport error_report;
-};
+	struct FontState {
+		uint8_t idx = 0;
+		uint8_t width_px = 0;
+		uint8_t height_px = 0;
+		int8_t kerning_px = 0;
+	};
+
+	class CharFramebuff {
+		public:
+			CharFramebuff(const struct device* const monochrome_display_device_ptr);
+			~CharFramebuff();
+
+			char_framebuff::ErrorCode device_set(const struct device* const monochrome_display_device_ptr);
+			char_framebuff::ErrorCode font_set(uint8_t font_idx);
+			char_framebuff::ErrorCode font_kerning_set(int8_t font_kerning_px);
+			char_framebuff::ErrorCode screen_clear();
+			char_framebuff::ErrorCode string_load(const std::string_view input_string, const size_t row_idx, const size_t column_idx);
+			char_framebuff::ErrorCode screen_print();
+			char_framebuff::ErrorState error_state_get();
+
+		private:
+			char_framebuff::TargetDisplay display;
+			char_framebuff::ErrorState error;
+			char_framebuff::FontState font;
+	};
+}
 
 #endif
