@@ -19,6 +19,7 @@ z_cbf::CharacterFramebuffer::TargetDisplay z_cbf::CharacterFramebuffer::init_ope
 		return {};
 	}
 
+	this->system.cfb_init_flag = 1;
 	TargetDisplay display{{monochrome_display_device_ptr},
 	{static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_WIDTH))},
 	{static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_HEIGHT))}};
@@ -28,6 +29,7 @@ z_cbf::CharacterFramebuffer::TargetDisplay z_cbf::CharacterFramebuffer::init_ope
 		return {};
 	}
 
+	this->system.cfb_ready_flag = 1;
 	this->error = {z_cbf::ErrorCode::Ok, 0};
 	return display;
 
@@ -35,16 +37,16 @@ z_cbf::CharacterFramebuffer::TargetDisplay z_cbf::CharacterFramebuffer::init_ope
 
 z_cbf::ErrorCode z_cbf::CharacterFramebuffer::font_set(uint8_t font_idx) {
 
-	if (this->error.code == z_cbf::ErrorCode::DeviceUnready || this->error.code == z_cbf::ErrorCode::CfbInit ||
-	this->error.code == z_cbf::ErrorCode::DisplayResolution) {
+	if (!this->system.cfb_ready_flag) {
 		return this->error.code;
 	}
 
-	if (font_idx > cfb_get_numof_fonts(this->display.device_ptr) - 1) {
+	if (font_idx >= cfb_get_numof_fonts(this->display.device_ptr)) {
 		this->error = {z_cbf::ErrorCode::ParamFontIndex, 0};
 		return this->error.code;
 	}
 
+	this->system.font_ready_flag = 0;
 	this->error.return_value = cfb_framebuffer_set_font(this->display.device_ptr, font_idx);
 
 	if (this->error.return_value != 0) {
@@ -65,25 +67,7 @@ z_cbf::ErrorCode z_cbf::CharacterFramebuffer::font_set(uint8_t font_idx) {
 		return this->error.code;
 	}
 
-	this->error = {z_cbf::ErrorCode::Ok, 0};
-	return this->error.code;
-}
-
-z_cbf::ErrorCode z_cbf::CharacterFramebuffer::font_kerning_set(int8_t font_kerning_px) {
-
-	if (this->error.code == z_cbf::ErrorCode::DeviceUnready || this->error.code == z_cbf::ErrorCode::CfbInit ||
-	this->error.code == z_cbf::ErrorCode::DisplayResolution) {
-		return this->error.code;
-	}
-
-	this->error.return_value = cfb_set_kerning(this->display.device_ptr, font_kerning_px);
-
-	if (this->error.return_value != 0) {
-		this->error.code = z_cbf::ErrorCode::CfbFontKerningSet;
-		return this->error.code;
-	}
-
-	this->font.kerning_px = font_kerning_px;
+	this->system.font_ready_flag = 1;
 	this->error = {z_cbf::ErrorCode::Ok, 0};
 	return this->error.code;
 }
@@ -91,16 +75,18 @@ z_cbf::ErrorCode z_cbf::CharacterFramebuffer::font_kerning_set(int8_t font_kerni
 z_cbf::CharacterFramebuffer::CharacterFramebuffer(const struct device* const monochrome_display_device_ptr) :
 display{init_operations(monochrome_display_device_ptr)} {
 
-	if (this->error.code == z_cbf::ErrorCode::DeviceUnready || this->error.code == z_cbf::ErrorCode::CfbInit ||
-	this->error.code == z_cbf::ErrorCode::DisplayResolution) {
+	if (!this->system.cfb_ready_flag) {
+		return;
+	}
+
+	this->error.return_value = cfb_set_kerning(this->display.device_ptr, 0);
+
+	if (this->error.return_value != 0) {
+		this->error.code = z_cbf::ErrorCode::CfbFontKerningSet;
 		return;
 	}
 
 	if (this->font_set(0) != z_cbf::ErrorCode::Ok) {
-		return;
-	}
-
-	if (this->font_kerning_set(0) != z_cbf::ErrorCode::Ok) {
 		return;
 	}
 
@@ -109,22 +95,21 @@ display{init_operations(monochrome_display_device_ptr)} {
 
 z_cbf::CharacterFramebuffer::~CharacterFramebuffer() {
 
-	if (this->error.code != z_cbf::ErrorCode::DeviceUnready && this->error.code != z_cbf::ErrorCode::CfbInit) {
+	if (this->system.cfb_init_flag) {
 		cfb_framebuffer_deinit(this->display.device_ptr);
 	}
 }
 
 z_cbf::ErrorCode z_cbf::CharacterFramebuffer::ram_clear() {
 
-	if (this->error.code == z_cbf::ErrorCode::DeviceUnready || this->error.code == z_cbf::ErrorCode::CfbInit ||
-	this->error.code == z_cbf::ErrorCode::DisplayResolution) {
+	if (!this->system.cfb_ready_flag) {
 		return this->error.code;
 	}
 
 	this->error.return_value = cfb_framebuffer_clear(this->display.device_ptr, false);
 
 	if (this->error.return_value != 0) {
-		this->error.code = z_cbf::ErrorCode::CfbScreenClear;
+		this->error.code = z_cbf::ErrorCode::CfbRamClear;
 		return this->error.code;
 	}
 
@@ -134,10 +119,7 @@ z_cbf::ErrorCode z_cbf::CharacterFramebuffer::ram_clear() {
 
 z_cbf::ErrorCode z_cbf::CharacterFramebuffer::string_load(const std::string_view input_string, const size_t row_idx, const size_t column_idx) {
 
-	if (this->error.code == z_cbf::ErrorCode::DeviceUnready || this->error.code == z_cbf::ErrorCode::CfbInit ||
-	this->error.code == z_cbf::ErrorCode::DisplayResolution ||
-	this->error.code == z_cbf::ErrorCode::CfbFontSet || this->error.code == z_cbf::ErrorCode::CfbFontSizeGet ||
-	this->error.code == z_cbf::ErrorCode::CfbFontKerningSet) {
+	if (!this->system.font_ready_flag) {
 		return this->error.code;
 	}
 
@@ -151,8 +133,13 @@ z_cbf::ErrorCode z_cbf::CharacterFramebuffer::string_load(const std::string_view
 		return this->error.code;
 	}
 
+	if (input_string.at(input_string.size()) != '\0') {
+		this->error = {z_cbf::ErrorCode::ParamStringNull, 0};
+		return this->error.code;
+	}
+
 	this->error.return_value = cfb_draw_text(this->display.device_ptr, input_string.data(),
-	static_cast<int16_t>(column_idx * (this->font.width_px + this->font.kerning_px)),
+	static_cast<int16_t>(column_idx * this->font.width_px),
 	static_cast<int16_t>(row_idx * this->font.height_px));
 
 	if (this->error.return_value != 0) {
@@ -166,15 +153,14 @@ z_cbf::ErrorCode z_cbf::CharacterFramebuffer::string_load(const std::string_view
 
 z_cbf::ErrorCode z_cbf::CharacterFramebuffer::ram_write() {
 
-	if (this->error.code == z_cbf::ErrorCode::DeviceUnready || this->error.code == z_cbf::ErrorCode::CfbInit ||
-	this->error.code == z_cbf::ErrorCode::DisplayResolution) {
+	if (!this->system.cfb_ready_flag) {
 		return this->error.code;
 	}
 
 	this->error.return_value = cfb_framebuffer_finalize(this->display.device_ptr);
 
 	if (this->error.return_value != 0) {
-		this->error.code = z_cbf::ErrorCode::CfbScreenPrint;
+		this->error.code = z_cbf::ErrorCode::CfbRamWrite;
 		return this->error.code;
 	}
 
