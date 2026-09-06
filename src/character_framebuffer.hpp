@@ -15,14 +15,15 @@ namespace z_cbf {
 		DisplayResolution,
 		ParamPositionIndex,
 		ParamStringLength,
+		ParamStringNull,
 		ParamFontIndex,
 		CfbInit,
 		CfbFontSet,
 		CfbFontSizeGet,
 		CfbFontKerningSet,
-		CfbScreenClear,
+		CfbRamClear,
 		CfbStringLoad,
-		CfbScreenPrint
+		CfbRamWrite
 	};
 
 	struct ErrorState {
@@ -36,12 +37,11 @@ namespace z_cbf {
 			~CharacterFramebuffer();
 
 			CharacterFramebuffer(const CharacterFramebuffer&) = delete;
-			CharacterFramebuffer(const CharacterFramebuffer&&) = delete;
+			CharacterFramebuffer(CharacterFramebuffer&&) = delete;
 			CharacterFramebuffer& operator=(const CharacterFramebuffer&) = delete;
-			CharacterFramebuffer& operator=(const CharacterFramebuffer&&) = delete;
+			CharacterFramebuffer& operator=(CharacterFramebuffer&&) = delete;
 
 			z_cbf::ErrorCode font_set(uint8_t font_idx);
-			z_cbf::ErrorCode font_kerning_set(int8_t font_kerning_px);
 			z_cbf::ErrorCode ram_clear();
 			z_cbf::ErrorCode string_load(const std::string_view input_string, const size_t row_idx, const size_t column_idx);
 			z_cbf::ErrorCode ram_write();
@@ -62,8 +62,15 @@ namespace z_cbf {
 				int8_t kerning_px = 0;
 			};
 
-			TargetDisplay display;
+			struct SystemState {
+				uint8_t cfb_init_flag = 0;
+				uint8_t cfb_ready_flag = 0;
+				uint8_t font_ready_flag = 0;
+			};
+
 			z_cbf::ErrorState error;
+			SystemState system;
+			TargetDisplay display;
 			FontState font;
 
 			TargetDisplay init_operations(const struct device* const monochrome_display_device_ptr);
