@@ -1,12 +1,12 @@
-/*
+/**
 *
 *	@file		character_framebuffer.hpp
 *
 *	@brief		Public API for the character_framebuffer module
 *
-*	@details	Adapter module for Zephyr's Monochrome Character Framebuffer API.
+*	@details	Adapter module for Zephyr's Monochrome Character Framebuffer API
 *
-*			Supports strings loading, font selection, RAM clearing and writing
+*				Supports text rendering, font selection and Zephyr's CFB API return values
 *
 */
 
@@ -20,15 +20,6 @@
 
 namespace character_framebuffer {
 
-/*
-*
-*	@brief	Error codes of the module
-*
-*	@par	Invariants
-*
-*		-If an error related to Zephyr's CFB API occurs then the code is prefixed with "Cfb"
-*
-*/
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
 		DeviceUnready,
@@ -43,26 +34,10 @@ namespace character_framebuffer {
 		CfbFontSizeGet,
 		CfbFontKerningSet,
 		CfbRamClear,
-		CfbStringLoad,
-		CfbRamWrite
+		CfbStringWrite,
+		CfbRamFlush
 	};
 
-/*
-*
-*	@brief	Data structure for all types of errors
-*
-*	@par	Invariants
-*
-*		-All members of this struct are updated at the end of every method of CharacterFramebuffer
-*
-*		-If a module-based error occurs then it is represented by code and the other members are equal to 0
-*
-*		-If an error related to Zephyr's CFB API occurs then it is represented by both code and return_value
-*
-*		-If an error related to Zephyr's CFB API occurs during the loading phase in string_load then the position
-*		on the display where the error has occurred is saved in the last 2 members, which are equal to 0 in any other error case
-*
-*/
 	struct ErrorState {
 		ErrorCode code = character_framebuffer::ErrorCode::Ok;
 		int return_value = 0;
@@ -70,157 +45,28 @@ namespace character_framebuffer {
 		size_t column_idx = 0;
 	};
 
-/*
-*
-*	@brief	Class for Zephyr's Monochrome Character Framebuffer API
-*
-*/
 	class CharacterFramebuffer {
 
 		public:
 
-/*
-*
-*	@brief	Constructor to initialize the framebuffer to target a specific display
-*
-*	@param	monochrome_display_device_ptr	Pointer to the device struct of the target display
-*
-*	@pre	The target display is ready to be used
-*	@pre	monochrome_display_device_ptr points to the device struct of the target device
-*	@post	If the target display is not ready to be used then error.code is set to DeviceUnready
-*	@post	If an error occurs when initializing the framebuffer with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbInit
-*	@post	If the display width and height parameters obtained from Zephyr's CFB API are 0 then error.code is set to DisplayResolution
-*	@post	If an error occurs when setting the kerning with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
-*	@post	If an error occurs when setting the font to that at index 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
-*	@post	If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
-*	@post	If the size of the font obtained with Zephyr's CFB API is 0 then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
-*	@post	If the obtained size of the font is bigger then the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
-*	@post	On success the target device is ready, the CFB is initialized, the kerning is set to 0 px, the font is set to index 0, and error.code is set to Ok
-*
-*/
 			explicit CharacterFramebuffer(const struct device* const monochrome_display_device_ptr);
-
-/*
-*
-*	@brief	Destructor to deinitialize the framebuffer
-*
-*	@pre	The CFB has been successfully initialized by calling the constructor
-*	@post	If the CFB has been successfully initialized by the constructor then it is deinitialized
-*
-*/
 			~CharacterFramebuffer();
 
-/*
-*
-*	@brief	Deleted copy/move constructors/operators to enforce a single instance of this class
-*
-*/
+			/*
+			*
+			*	Copy/move constructors/operators are deleted because there should be only 1 instance of this class
+			*
+			*/
 			CharacterFramebuffer(const CharacterFramebuffer&) = delete;
 			CharacterFramebuffer(CharacterFramebuffer&&) = delete;
 			CharacterFramebuffer& operator=(const CharacterFramebuffer&) = delete;
 			CharacterFramebuffer& operator=(CharacterFramebuffer&&) = delete;
 
-/*
-*
-*	@brief	Method to select the font from Zephyr's catalog
-*
-*	@param	font_idx			Index of the font in Zephyr's catalog
-*
-*	@retval	CfbUnready			If the CFB has not been successfully initialized
-*	@retval	ParamFontIndex			If font_idx is bigger then the number of fonts available in Zephyr's catalog
-*	@retval	CfbFontSet			If an error occurs when setting the font to that at index font_idx
-*	@retval	CfbFontSizeGet			If an error occurs when obtaining the size of the font at index font_idx or if the obtained size is 0
-*	@retval	DisplayResolution		If the obtained size of the font is bigger then the obtained size of the display
-*	@retval	Ok				If no error occurs
-*
-*	@pre	The CFB has been successfully initialized
-*	@pre	The required font has been set in prj.conf
-*	@pre	font_idx is smaller then the available number of fonts
-*	@post	If the CFB has not been successfully initialized then error.code is set to CfbUnready
-*	@post	If font_idx is out of range then the font is not changed and it is still possible to use it
-*	@post	If an error with Zephyr's CFB API occurs then another call is necessary to use the font
-*	@post	If an error occurs when setting the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
-*	@post	If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
-*	@post	If the size of the font is bigger than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
-*	@post	On success the font is set to that at index font_idx and error.code is set to Ok
-*
-*/
 			character_framebuffer::ErrorCode font_set(uint8_t font_idx);
-
-/*
-*
-*	@brief	Method to clear the framebuffer RAM
-*
-*	@retval	CfbUnready			If the CFB has not been successfully initialized
-*	@retval	CfbRamClear			If an error occurs when clearing the RAM
-*	@retval Ok				If no error occurs
-*
-*	@pre	The CFB has been successfully initialized
-*	@post	If the CFB has not been successfully initialized then error.code is set to CfbUnready
-*	@post	If an error occurs when clearing the RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbRamClear
-*	@post	On success the framebuffer RAM is cleared and error.code is set to Ok
-*
-*/
 			character_framebuffer::ErrorCode ram_clear();
+			character_framebuffer::ErrorCode ram_string_write(const std::string_view input_string, const size_t row_idx, const size_t column_idx);
+			character_framebuffer::ErrorCode ram_flush();
 
-/*
-*
-*	@brief	Method to load a string in a grid of the framebuffer RAM.
-*
-*	@param	input_string			String to load
-*	@param	row_idx				Index of the row where to load the string
-*	@param	column_idx			Index of the column where to load the string
-*
-*	@retval	CfbUnready			If the CFB has not been successfully initialized
-*	@retval	ParamPositionIndex		If the position index is out of range
-*	@retval	ParamStringLength		If the length of the string from column_idx exceeds the grid
-*	@retval	CfbStringLoad			If an error occurs when loading a character in the framebuffer RAM
-*	@retval Ok				If no error occurs
-*
-*	@pre	The CFB has been successfully initialized
-*	@pre	The position index is within the valid range
-*	@pre	The length of the string from column_idx lets it fit within the grid
-*	@post	If the CFB has not been successfully initialized then error.code is set to CfbUnready
-*	@post	If the position index is out of range then error.code is set to ParamPositionIndex
-*	@post	If the length of the strings from column_idx exceeds the grid then error.code is set to ParamStringLength
-*	@post	If an error occurs when loading a character with Zephyr's CFB API then its return value is saved in error.return_value, error.code is set to CfbStringLoad and its position index is saved in error.row_idx and error.column_idx
-*	@post	On success input_string is loaded in the framebuffer RAM and error.code is set to Ok
-*
-*	@par	Invariants
-*
-*		-The size of the grid is the same as the size of the display obtained with Zephyr's CFB API
-*
-*		-The number of columns of the grid is equal to the width of the display divided by the width of the font obtained with Zephyr's CFB API
-*
-*		-The number of rows of the grid is equal to the height of the display divided by the height of the font obtained with Zephyr's CFB API
-*
-*/
-			character_framebuffer::ErrorCode string_load(const std::string_view input_string, const size_t row_idx, const size_t column_idx);
-
-/*
-*
-*	@brief	Method to write the loaded data in the framebuffer RAM.
-*
-*	@retval	CfbUnready			If the CFB has not been successfully initialized
-*	@retval	CfbRamWrite			If an error occurs when writing the framebuffer RAM
-*	@retval Ok				If no error occurs
-*
-*	@pre	The CFB has been successfully initialized
-*	@post	If the CFB has not been successfully initialized then error.code is set to CfbUnready
-*	@post	If an error occurs when writing the framebuffer RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbRamWrite
-*	@post	On success the loaded data is written in the framebuffer RAM and error.code is set to Ok
-*
-*/
-			character_framebuffer::ErrorCode ram_write();
-
-
-/*
-*
-*	@brief	Method to obtain the full error report
-*
-*	@retval error				The full error struct
-*
-*/
 			[[nodiscard("Called error getter and discarded its return value")]] character_framebuffer::ErrorState error_state_get() const;
 
 		private:
@@ -253,3 +99,163 @@ namespace character_framebuffer {
 }
 
 #endif
+
+/**
+*
+*	@enum		character_framebuffer::ErrorCode
+*
+*	@brief		Error codes of the module
+*
+*	@invariant	If an error related to Zephyr's CFB API occurs then the code is prefixed with "Cfb"
+*
+*/
+
+/**
+*
+*	@struct		character_framebuffer::ErrorState
+*
+*	@brief		Data structure for all types of errors
+*
+*	@invariant	All members of this struct are set at the end of every fallible method of CharacterFramebuffer
+*	@invariant	If a module-based error occurs then it is represented by code and the other members are equal to 0
+*	@invariant	If an error related to Zephyr's CFB API occurs then it is represented by both code and return_value
+*	@invariant	If an error related to Zephyr's CFB API occurs during the writing phase in ram_string_write then the position on the display where the error has occurred is saved in the last 2 members, which are equal to 0 in any other error case
+*
+*/
+
+/**
+*
+*	@class		character_framebuffer::CharacterFramebuffer
+*
+*	@brief		Class for Zephyr's Monochrome Character Framebuffer API
+*
+*	@warning	Since Zephyr currently supports only 1 character framebuffer there should be only 1 instance of this class
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::CharacterFramebuffer::CharacterFramebuffer(const struct device* const monochrome_display_device_ptr)
+*
+*	@brief		Constructor to initialize the framebuffer to target a specific display
+*
+*	@param[in]	monochrome_display_device_ptr	Pointer to the device struct of the target display
+*
+*	@pre		monochrome_display_device_ptr points to a valid device struct of a monochrome display
+*	@post		If the target display is not ready to be used then error.code is set to DeviceUnready
+*	@post		If an error occurs when initializing the framebuffer with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbInit
+*	@post		If the display width and height parameters obtained from Zephyr's CFB API are 0 then error.code is set to DisplayResolution
+*	@post		If an error occurs when setting the kerning with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
+*	@post		If an error occurs when setting the font to that at index 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
+*	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
+*	@post		If the size of the font obtained with Zephyr's CFB API is 0 then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
+*	@post		If the obtained size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
+*	@post		On success the target device is ready, the CFB is initialized, the kerning is set to 0 px, the font is set to index 0, and error.code is set to Ok
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::CharacterFramebuffer::~CharacterFramebuffer()
+*
+*	@brief		Destructor to deinitialize the framebuffer
+*
+*	@post		If the CFB has been successfully initialized by the constructor then it is deinitialized
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(uint8_t font_idx)
+*
+*	@brief		Method to select the font from Zephyr's catalog
+*
+*	@param[in]	font_idx						Index of the font in Zephyr's catalog
+*
+*	@retval		CfbUnready						If the CFB has not been successfully initialized
+*	@retval		ParamFontIndex					If font_idx is greater than the number of fonts available in Zephyr's catalog
+*	@retval		CfbFontSet						If an error occurs when setting the font to that at index font_idx
+*	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at index font_idx or if the obtained size is 0
+*	@retval		DisplayResolution				If the obtained size of the font is greater than the obtained size of the display
+*	@retval		Ok								If no error occurs
+*
+*	@pre		The required font has been set in prj.conf
+*	@post		If the CFB has not been successfully initialized then error.code is set to CfbUnready
+*	@post		If font_idx is out of range then the font is not changed and it is still possible to use it
+*	@post		If an error with Zephyr's CFB API occurs then another call is necessary to use the font
+*	@post		If an error occurs when setting the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
+*	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
+*	@post		If the size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
+*	@post		On success the font is set to that at index font_idx and error.code is set to Ok
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_clear()
+*
+*	@brief		Method to clear framebuffer's RAM
+*
+*	@retval		CfbUnready						If the CFB has not been successfully initialized
+*	@retval		CfbRamClear						If an error occurs when clearing the RAM
+*	@retval 	Ok								If no error occurs
+*
+*	@post		If the CFB has not been successfully initialized then error.code is set to CfbUnready
+*	@post		If an error occurs when clearing the RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbRamClear
+*	@post		On success framebuffer's RAM is cleared and error.code is set to Ok
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(const std::string_view input_string, const size_t row_idx, const size_t column_idx)
+*
+*	@brief		Method to write a string in a grid of framebuffer's RAM
+*
+*	@param[in]	input_string					String to write
+*	@param[in]	row_idx							Index of the row of the grid
+*	@param[in]	column_idx						Index of the column of the grid
+*
+*	@retval		CfbFontUnready					If the font has not been successfully initialized
+*	@retval		ParamPositionIndex				If the position indexes are out of range
+*	@retval		ParamStringLength				If the length of the string from column_idx exceeds the grid
+*	@retval		CfbStringWrite					If an error occurs when writing a character in framebuffer's RAM
+*	@retval 	Ok								If no error occurs
+*
+*	@pre		input_string contains a string compatible with Zephyr's font
+*	@post		If the font has not been successfully initialized then error.code is set to CfbFontUnready
+*	@post		If the position indexes are out of range then error.code is set to ParamPositionIndex
+*	@post		If the length of the strings from column_idx exceeds the grid then error.code is set to ParamStringLength
+*	@post		If an error occurs when writing a character with Zephyr's CFB API then its return value is saved in error.return_value, error.code is set to CfbStringWrite and its position indexes are saved in error.row_idx and error.column_idx
+*	@post		On success input_string is written in framebuffer's RAM and error.code is set to Ok
+*
+*	@invariant	The number of columns of the grid is equal to the width of the display divided by the width of the font obtained with Zephyr's CFB API
+*	@invariant	The number of rows of the grid is equal to the height of the display divided by the height of the font obtained with Zephyr's CFB API
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_flush()
+*
+*	@brief		Method to flush framebuffer's RAM to the target display's RAM
+*
+*	@retval		CfbUnready						If the CFB has not been successfully initialized
+*	@retval		CfbRamFlush						If an error occurs when flushing framebuffer's RAM
+*	@retval 	Ok								If no error occurs
+*
+*	@post		If the CFB has not been successfully initialized then error.code is set to CfbUnready
+*	@post		If an error occurs when flushing framebuffer's RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbRamFlush
+*	@post		On success the data in framebuffer's RAM is flushed in display's RAM and error.code is set to Ok
+*
+*/
+
+/**
+*
+*	@fn			character_framebuffer::ErrorState character_framebuffer::CharacterFramebuffer::error_state_get() const
+*
+*	@brief		Method to obtain the full error report
+*
+*	@return										The full error struct
+*
+*/
