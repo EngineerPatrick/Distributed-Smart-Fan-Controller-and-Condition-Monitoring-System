@@ -6,14 +6,4 @@ cmake_minimum_required(VERSION 4.2.3)
 find_package(Zephyr)
 project(Distributed-Smart-Fan-Controller-and-Condition-Monitoring-System)
 
-target_sources(app
-	PRIVATE
-	src/main.cpp
-	src/display_test.cpp
-	src/character_framebuffer.cpp
-
-	PUBLIC
-	FILE_SET HEADERS
-	FILES
-	src/character_framebuffer.hpp
-)
+add_subdirectory(src)
