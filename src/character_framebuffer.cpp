@@ -1,3 +1,16 @@
+/**
+*
+*	@file		character_framebuffer.cpp
+*
+*	@brief		Implementation for the character_framebuffer module
+*
+*	@details	Acquires Zephyr's CFB resource, keeps track of its return
+*				values and performs text operations
+*
+*				Implements RAII to acquire and release the employed resource
+*
+*/
+
 #include "character_framebuffer.hpp"
 #include <cstdint>
 #include <cstddef>
@@ -22,6 +35,7 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 	}
 
 	this->system.cfb_init = true;
+
 	TargetDisplay display{{monochrome_display_device_ptr},
 	{static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_WIDTH))},
 	{static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_HEIGHT))}};
@@ -69,7 +83,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 		return this->error.code;
 	}
 
-	if (!this->font.width_px ||!this->font.height_px) {
+	if (!this->font.width_px || !this->font.height_px) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
 		this->error.row_idx = 0;
 		this->error.column_idx = 0;
@@ -136,7 +150,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 	return this->error.code;
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::string_load(std::string_view input_string, const size_t row_idx, const size_t column_idx) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(std::string_view input_string, const size_t row_idx, const size_t column_idx) {
 	char input_char[2] = {' ', '\0'};
 
 	if (!this->system.font_ready) {
@@ -162,7 +176,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::st
 		static_cast<int16_t>(row_idx * this->font.height_px));
 
 		if (this->error.return_value != 0) {
-			this->error.code = character_framebuffer::ErrorCode::CfbStringLoad;
+			this->error.code = character_framebuffer::ErrorCode::CfbStringWrite;
 			this->error.row_idx = row_idx;
 			this->error.column_idx = (column_idx + i);
 			return this->error.code;
@@ -173,7 +187,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::st
 	return this->error.code;
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_write() {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_flush() {
 
 	if (!this->system.cfb_ready) {
 		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
@@ -183,7 +197,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 	this->error.return_value = cfb_framebuffer_finalize(this->display.device_ptr);
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbRamWrite;
+		this->error.code = character_framebuffer::ErrorCode::CfbRamFlush;
 		this->error.row_idx = 0;
 		this->error.column_idx = 0;
 		return this->error.code;
