@@ -16,8 +16,8 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbInit;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return {};
 	}
 
@@ -54,8 +54,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSet;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return this->error.code;
 	}
 
@@ -64,15 +64,15 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return this->error.code;
 	}
 
 	if (!this->font.width_px ||!this->font.height_px) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return this->error.code;
 	}
 
@@ -97,8 +97,8 @@ display{init_operations(monochrome_display_device_ptr)} {
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontKerningSet;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return;
 	}
 
@@ -127,8 +127,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbRamClear;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return this->error.code;
 	}
 
@@ -137,7 +137,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 }
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::string_load(std::string_view input_string, const size_t row_idx, const size_t column_idx) {
-	char input_letter[2] = {' ', '\0'};
+	char input_char[2] = {' ', '\0'};
 
 	if (!this->system.font_ready) {
 		this->error = {character_framebuffer::ErrorCode::CfbFontUnready, 0, 0, 0};
@@ -155,16 +155,16 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::st
 	}
 
 	for (size_t i = 0; i < input_string.size(); i++) {
-		input_letter[0] = input_string.at(i);
+		input_char[0] = input_string.at(i);
 
-		this->error.return_value = cfb_draw_text(this->display.device_ptr, input_letter,
+		this->error.return_value = cfb_draw_text(this->display.device_ptr, input_char,
 		static_cast<int16_t>((column_idx + i) * this->font.width_px),
 		static_cast<int16_t>(row_idx * this->font.height_px));
 
 		if (this->error.return_value != 0) {
 			this->error.code = character_framebuffer::ErrorCode::CfbStringLoad;
-			this->error.last_loaded_row_idx = row_idx;
-			this->error.last_loaded_column_idx = (column_idx + i);
+			this->error.row_idx = row_idx;
+			this->error.column_idx = (column_idx + i);
 			return this->error.code;
 		}
 	}
@@ -184,8 +184,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbRamWrite;
-		this->error.last_loaded_row_idx = 0;
-		this->error.last_loaded_column_idx = 0;
+		this->error.row_idx = 0;
+		this->error.column_idx = 0;
 		return this->error.code;
 	}
 
