@@ -67,6 +67,24 @@ int main(void) {
 		while(1) {}
 	}
 
+	size_t width_px, height_px;
+
+	error_code = cb0.display_sizes_get(width_px, height_px);
+
+	if (error_code != character_framebuffer::ErrorCode::Ok || width_px != 128 || height_px != 64) {
+		gpio_pin_toggle_dt(&error_led);
+
+		while(1) {}
+	}
+
+	error_code = cb0.font_sizes_get(width_px, height_px);
+
+	if (error_code != character_framebuffer::ErrorCode::Ok || width_px != 10 || height_px != 16) {
+		gpio_pin_toggle_dt(&error_led);
+
+		while(1) {}
+	}
+
 	while (1) {}
 
 	return 0;
