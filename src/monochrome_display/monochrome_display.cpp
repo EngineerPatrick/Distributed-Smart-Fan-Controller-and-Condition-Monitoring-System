@@ -4,7 +4,7 @@
 *
 *	@brief		Implementation for the monochrome_display module
 *
-*	@details	Handles the calculation of the screen grid and the
+*	@details	Handles the calculation of the grid and the
 *				conversion from grid index to pixel coordinate
 *
 *				BLINKING TIMER DESCRIPTIO TO DO
@@ -40,12 +40,12 @@ cfb{monochrome_display_device_ptr} {
 	this->system.main_ready = true;
 
 	if (this->cfb.display_sizes_get(display_width_px, display_height_px) != character_framebuffer::ErrorCode::Ok) {
-		this->error = monochrome_display::ErrorCode::CfbInternal;
+		this->error = monochrome_display::ErrorCode::CfbTextUnready;
 		return;
 	}
 
 	if (this->cfb.font_sizes_get(this->font.width_px, this->font.height_px) != character_framebuffer::ErrorCode::Ok) {
-		this->error = monochrome_display::ErrorCode::CfbInternal;
+		this->error = monochrome_display::ErrorCode::CfbTextUnready;
 		return;
 	}
 
@@ -54,7 +54,7 @@ cfb{monochrome_display_device_ptr} {
 	this->error = monochrome_display::ErrorCode::Ok;
 }
 
-monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::screen_clear() {
+monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_clear() {
 
 	if (!(this->system.main_ready)) {
 		this->error = monochrome_display::ErrorCode::CfbUnready;
@@ -62,12 +62,7 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::screen_clea
 	}
 
 	if (this->cfb.ram_clear() != character_framebuffer::ErrorCode::Ok) {
-		this->error = monochrome_display::ErrorCode::CfbInternal;
-		return this->error;
-	}
-
-	if (this->cfb.ram_flush() != character_framebuffer::ErrorCode::Ok) {
-		this->error = monochrome_display::ErrorCode::CfbInternal;
+		this->error = monochrome_display::ErrorCode::CfbRam;
 		return this->error;
 	}
 
@@ -75,7 +70,7 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::screen_clea
 	return this->error;
 }
 
-monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::screen_string_print(std::string_view input_string, size_t row_idx, size_t column_idx) {
+monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_string_write(std::string_view input_string, size_t row_idx, size_t column_idx) {
 
 	if (!(this->system.text_ready)) {
 		this->error = monochrome_display::ErrorCode::CfbTextUnready;
@@ -95,12 +90,7 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::screen_stri
 	if (this->cfb.ram_string_write(input_string, (row_idx * this->font.height_px), (column_idx * this->font.width_px)) !=
 	character_framebuffer::ErrorCode::Ok) {
 
-		this->error = monochrome_display::ErrorCode::CfbInternal;
-		return this->error;
-	}
-
-	if (this->cfb.ram_flush() != character_framebuffer::ErrorCode::Ok) {
-		this->error = monochrome_display::ErrorCode::CfbInternal;
+		this->error = monochrome_display::ErrorCode::CfbRam;
 		return this->error;
 	}
 
@@ -109,11 +99,27 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::screen_stri
 }
 
 /*
-monochrome_display::ErrorCode screen_string_blink(std::string_view input_string, size_t row_idx, size_t column_idx, size_t blink_time_ms) {
+monochrome_display::ErrorCode string_blink(std::string_view input_string, size_t row_idx, size_t column_idx, size_t blink_time_ms) {
 	timer logic
 	maybe thread logic
 }
 */
+
+monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_print() {
+
+	if (!(system.main_ready)) {
+		this->error = monochrome_display::ErrorCode::CfbUnready;
+		return this->error;
+	}
+
+	if (this->cfb.ram_flush() != character_framebuffer::ErrorCode::Ok) {
+		this->error = monochrome_display::ErrorCode::CfbRam;
+		return this->error;
+	}
+
+	this->error = monochrome_display::ErrorCode::Ok;
+	return this->error;
+}
 
 monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::error_get() const {
 	return this->error;

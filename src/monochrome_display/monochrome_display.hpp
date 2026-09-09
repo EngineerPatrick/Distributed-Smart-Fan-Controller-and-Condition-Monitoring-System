@@ -7,7 +7,7 @@
 *	@details	Monochrome display service to manage a single device
 *				by using the character framebuffer
 *
-*				Prints text on a screen grid and manages blinking
+*				Writes text on a grid, prints it on the display and manages blinking
 *
 */
 
@@ -27,7 +27,7 @@ namespace monochrome_display {
 		DeviceUnready,
 		CfbUnready,
 		CfbTextUnready,
-		CfbInternal,
+		CfbRam,
 		ParamPositionIndexes,
 		ParamStringLength
 	};
@@ -48,9 +48,10 @@ namespace monochrome_display {
 			MonochromeDisplay& operator=(const MonochromeDisplay&) = delete;
 			MonochromeDisplay& operator=(MonochromeDisplay&&) = delete;
 
-			monochrome_display::ErrorCode screen_clear();
-			monochrome_display::ErrorCode screen_string_print(std::string_view input_string, size_t row_idx, size_t column_idx);
-//			monochrome_display::ErrorCode screen_string_blink();
+			monochrome_display::ErrorCode grid_clear();
+			monochrome_display::ErrorCode grid_string_write(std::string_view input_string, size_t row_idx, size_t column_idx);
+//			monochrome_display::ErrorCode string_blink();
+			monochrome_display::ErrorCode grid_print();
 
 			[[nodiscard("Called error getter and discarded its return value")]] monochrome_display::ErrorCode error_get() const;
 
@@ -116,7 +117,7 @@ namespace monochrome_display {
 *
 *	@fn			monochrome_display::MonochromeDisplay::MonochromeDisplay(const struct device* const monochrome_display_device_ptr)
 *
-*	@brief		Constructor to initialize the character framebuffer and the screen grid
+*	@brief		Constructor to initialize the character framebuffer and the grid
 *
 *	@param[in]	monochrome_display_device_ptr	Pointer to the device struct of the target display
 *
@@ -124,51 +125,66 @@ namespace monochrome_display {
 *	@post		If the target display is not ready to be used then error is set to DeviceUnready
 *	@post		If the CFB is not ready to be used then error is set to CfbUnready
 *	@post		If the text is not ready to be used then error is set to CfbTextUnready
-*	@post		If another error occurs with the CFB then error is set to CfbInternal
 *	@post		On success the CFB is ready to be used, the font sizes are saved in font, the grid sizes are saved in grid and error is set to Ok
 *
-*	@invariant	The cell-width of the grid is equal to the pixel-width of the screen divided by the pixel-width of the font
-*	@invariant	The cell-height of the grid is equal to the pixel-height of the screen divided by the pixel-height of the font
+*	@invariant	The cell-width of the grid is equal to the pixel-width of the display divided by the pixel-width of the font
+*	@invariant	The cell-height of the grid is equal to the pixel-height of the display divided by the pixel-height of the font
 *
 */
 
 /**
 *
-*	@fn			monochrome_display::MonochromeDisplay::screen_clear()
+*	@fn			monochrome_display::MonochromeDisplay::grid_clear()
 *
-*	@brief		Method to clear the screen
+*	@brief		Method to clear the grid
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
-*	@retval		CfbInternal						If an error occurs with the CFB
+*	@retval		CfbRam						If an error occurs with the CFB
 *	@retval		Ok								If no error occurs
 *
 *	@post		If the CFB is not ready to be used then error is set to CfbUnready
-*	@post		If an error occurs with the CFB then error is set to CfbInternal
-*	@post		On success the screen is cleared and error is set to Ok
+*	@post		If an error occurs with the CFB then error is set to CfbRam
+*	@post		On success the grid is cleared and error is set to Ok
 *
 */
 
 /**
 *
-*	@fn			monochrome_display::MonochromeDisplay::screen_string_print(std::string_view input_string, size_t row_idx, size_t column_idx)
+*	@fn			monochrome_display::MonochromeDisplay::grid_string_write(std::string_view input_string, size_t row_idx, size_t column_idx)
 *
-*	@brief		Method to print a string at a specific position of the screen grid
+*	@brief		Method to write a string at a specific position of the grid
 *
 *	@param[in]	input_string					String to print
-*	@param[in]	row_idx							Row index of the screen grid
-*	@param[in]	column_idx						Column index of the screen grid
+*	@param[in]	row_idx							Row index of the grid
+*	@param[in]	column_idx						Column index of the grid
 *
 *	@retval		CfbTextUnready					If the text is not ready to be used
 *	@retval		ParamPositionIndexes			If the position indexes are out of range
-*	@retval		ParamStringLength				If the length of the string from column_idx exceeds the screen grid width
-*	@retval		CfbInternal						If an error occurs with the CFB
+*	@retval		ParamStringLength				If the length of the string from column_idx exceeds the grid width
+*	@retval		CfbRam						If an error occurs with the CFB
 *	@retval		Ok								If no error occurs
 *
 *	@post		If the text is not ready to be used then error is set to CfbTextUnready
 *	@post		If the position indexes are out of range then error is set to ParamPositionIndexes
-*	@post		If the length of the string from column_idx exceeds the screen grid width then error is set to ParamStringLength
-*	@post		If an error occurs with the CFB then error is set to CfbInternal
-*	@post		On success the screen prints input_string at the position specified by the indexes and error is set to Ok
+*	@post		If the length of the string from column_idx exceeds the grid width then error is set to ParamStringLength
+*	@post		If an error occurs with the CFB then error is set to CfbRam
+*	@post		On success input_string is written in the grid at the position specified by the indexes and error is set to Ok
+*
+*/
+
+/**
+*
+*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_print()
+*
+*	@brief		Method to print the grid on the display
+*
+*	@retval		CfbUnready						If the CFB is not ready to be used
+*	@retval		CfbRam						If an error occurs with the CFB
+*	@retval		Ok								If no error occurs
+*
+*	@post		If the CFB is not ready to be used then error is set to CfbUnready
+*	@post		If an error occurs with the CFB then error is set to CfbRam
+*	@post		On success the grid is printed on the display and error is set to Ok
 *
 */
 
