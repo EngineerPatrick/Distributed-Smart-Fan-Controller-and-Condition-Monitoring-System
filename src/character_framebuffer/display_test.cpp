@@ -21,7 +21,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	error_code = cb0.ram_string_write("UPCOMING", 0, 2);
+	error_code = cb0.ram_string_write("UPCOMING", 0 * 16, 2 * 10);
 
 	if (error_code != character_framebuffer::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
@@ -29,7 +29,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	error_code = cb0.ram_string_write("PROJECT!", 1, 2);
+	error_code = cb0.ram_string_write("PROJECT!", 1 * 16, 2 * 10);
 
 	if (error_code != character_framebuffer::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
@@ -37,7 +37,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	error_code = cb0.ram_string_write("STAY TUNED:)", 3, 0);
+	error_code = cb0.ram_string_write("STAY TUNED:)", 3 * 16, 0 * 10);
 
 	if (error_code != character_framebuffer::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
@@ -51,7 +51,7 @@ int main(void) {
 		while(1) {}
 	}
 
-	error_code = cb0.ram_string_write("ERROR TRIGGETING", 0, 0);
+	error_code = cb0.ram_string_write("ERROR TRIGGERING", 0, 0);
 
 	if (error_code != character_framebuffer::ErrorCode::ParamStringLength) {
 		gpio_pin_toggle_dt(&error_led);
