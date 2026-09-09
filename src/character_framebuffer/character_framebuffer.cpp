@@ -19,6 +19,8 @@
 #include <zephyr/display/cfb.h>
 
 character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer::CharacterFramebuffer::init_operations(const struct device* const monochrome_display_device_ptr) {
+	size_t display_width_px = 0;
+	size_t display_height_px = 0;
 
 	if (!device_is_ready(monochrome_display_device_ptr)) {
 		this->error = {character_framebuffer::ErrorCode::DeviceUnready, 0, 0, 0};
@@ -36,14 +38,15 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 
 	this->system.cfb_init = true;
 
-	TargetDisplay display{{monochrome_display_device_ptr},
-	{static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_WIDTH))},
-	{static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_HEIGHT))}};
+	display_width_px = static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_WIDTH));
+	display_height_px = static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_HEIGHT));
 
-	if (!display.width_px || !display.height_px) {
+	if (!display_width_px || !display_height_px) {
 		this->error = {character_framebuffer::ErrorCode::DisplayResolution, 0, 0, 0};
-		return display;
+		return {{monochrome_display_device_ptr}};
 	}
+
+	TargetDisplay display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
 
 	this->system.cfb_ready = true;
 	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
@@ -128,6 +131,34 @@ character_framebuffer::CharacterFramebuffer::~CharacterFramebuffer() {
 	if (this->system.cfb_init) {
 		cfb_framebuffer_deinit(this->display.device_ptr);
 	}
+}
+
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(size_t& display_width_px, size_t& display_height_px) {
+
+	if (!this->system.cfb_ready) {
+		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
+		return this->error.code;
+	}
+
+	display_width_px = this->display.width_px;
+	display_height_px = this->display.height_px;
+
+	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
+	return this->error.code;
+}
+
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(size_t& font_width_px, size_t& font_height_px) {
+
+	if (!this->system.font_ready) {
+		this->error = {character_framebuffer::ErrorCode::CfbFontUnready, 0, 0, 0};
+		return this->error.code;
+	}
+
+	font_width_px = this->font.width_px;
+	font_height_px = this->font.height_px;
+
+	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
+	return this->error.code;
 }
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_clear() {
