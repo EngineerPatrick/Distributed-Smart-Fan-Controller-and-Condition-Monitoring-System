@@ -24,7 +24,7 @@ namespace character_framebuffer {
 		Ok,
 		DeviceUnready,
 		DisplayResolution,
-		ParamPositionIndex,
+		ParamPixelCoordinates,
 		ParamStringLength,
 		ParamFontIndex,
 		CfbUnready,
@@ -41,8 +41,8 @@ namespace character_framebuffer {
 	struct ErrorState {
 		ErrorCode code = character_framebuffer::ErrorCode::Ok;
 		int return_value = 0;
-		size_t row_idx = 0;
-		size_t column_idx = 0;
+		size_t row_px = 0;
+		size_t column_px = 0;
 	};
 
 	class CharacterFramebuffer {
@@ -63,8 +63,9 @@ namespace character_framebuffer {
 			CharacterFramebuffer& operator=(CharacterFramebuffer&&) = delete;
 
 			character_framebuffer::ErrorCode font_set(uint8_t font_idx);
+
 			character_framebuffer::ErrorCode ram_clear();
-			character_framebuffer::ErrorCode ram_string_write(const std::string_view input_string, const size_t row_idx, const size_t column_idx);
+			character_framebuffer::ErrorCode ram_string_write(const std::string_view input_string, const size_t row_px, const size_t column_px);
 			character_framebuffer::ErrorCode ram_flush();
 
 			[[nodiscard("Called error getter and discarded its return value")]] character_framebuffer::ErrorState error_state_get() const;
@@ -208,29 +209,29 @@ namespace character_framebuffer {
 
 /**
 *
-*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(const std::string_view input_string, const size_t row_idx, const size_t column_idx)
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(const std::string_view input_string, const size_t row_px, const size_t column_px)
 *
-*	@brief		Method to write a string in a grid of framebuffer's RAM
+*	@brief		Method to write a string at specific pixel coordinates of framebuffer's RAM
 *
 *	@param[in]	input_string					String to write
-*	@param[in]	row_idx							Index of the row of the grid
-*	@param[in]	column_idx						Index of the column of the grid
+*	@param[in]	row_px							Pixel row coordinate
+*	@param[in]	column_px						Pixel column coordinate
 *
 *	@retval		CfbFontUnready					If the font has not been successfully initialized
-*	@retval		ParamPositionIndex				If the position indexes are out of range
-*	@retval		ParamStringLength				If the length of the string from column_idx exceeds the grid
+*	@retval		ParamPixelCoordinates			If the pixel coordinates are out of range
+*	@retval		ParamStringLength				If the length of the string from column_px exceeds the display width
 *	@retval		CfbStringWrite					If an error occurs when writing a character in framebuffer's RAM
 *	@retval 	Ok								If no error occurs
 *
 *	@pre		input_string contains a string compatible with Zephyr's font
 *	@post		If the font has not been successfully initialized then error.code is set to CfbFontUnready
-*	@post		If the position indexes are out of range then error.code is set to ParamPositionIndex
-*	@post		If the length of the strings from column_idx exceeds the grid then error.code is set to ParamStringLength
-*	@post		If an error occurs when writing a character with Zephyr's CFB API then its return value is saved in error.return_value, error.code is set to CfbStringWrite and its position indexes are saved in error.row_idx and error.column_idx
+*	@post		If the pixel coordinates are out of range then error.code is set to ParamPixelCoordinates
+*	@post		If the length of the strings from column_px exceeds the display width then error.code is set to ParamStringLength
+*	@post		If an error occurs when writing a character with Zephyr's CFB API then its return value is saved in error.return_value, error.code is set to CfbStringWrite and its pixel coordinates are saved in error.row_px and error.column_px
 *	@post		On success input_string is written in framebuffer's RAM and error.code is set to Ok
 *
-*	@invariant	The number of columns of the grid is equal to the width of the display divided by the width of the font obtained with Zephyr's CFB API
-*	@invariant	The number of rows of the grid is equal to the height of the display divided by the height of the font obtained with Zephyr's CFB API
+*	@invariant	All characters of the string are print at the same pixel row coordinate
+*	@invariant	All characters of the string are print at progressively increasing pixel column coordinates with increment equal to the width of the font
 *
 */
 

@@ -29,8 +29,8 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbInit;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return {};
 	}
 
@@ -68,8 +68,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSet;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return this->error.code;
 	}
 
@@ -78,15 +78,15 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return this->error.code;
 	}
 
 	if (!this->font.width_px || !this->font.height_px) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return this->error.code;
 	}
 
@@ -111,8 +111,8 @@ display{init_operations(monochrome_display_device_ptr)} {
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontKerningSet;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return;
 	}
 
@@ -141,8 +141,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbRamClear;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return this->error.code;
 	}
 
@@ -150,7 +150,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 	return this->error.code;
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(std::string_view input_string, const size_t row_idx, const size_t column_idx) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(std::string_view input_string, const size_t row_px, const size_t column_px) {
 	char input_char[2] = {' ', '\0'};
 
 	if (!this->system.font_ready) {
@@ -158,12 +158,12 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 		return this->error.code;
 	}
 
-	if (row_idx > (this->display.height_px / this->font.height_px) - 1 || column_idx > (this->display.width_px / this->font.width_px) - 1) {
-		this->error = {character_framebuffer::ErrorCode::ParamPositionIndex, 0, 0, 0};
+	if (row_px > (this->display.height_px - this->font.height_px) || column_px > (this->display.width_px - this->font.width_px)) {
+		this->error = {character_framebuffer::ErrorCode::ParamPixelCoordinates, 0, 0, 0};
 		return this->error.code;
 	}
 
-	if (input_string.size() > (this->display.width_px / this->font.width_px) - column_idx) {
+	if (input_string.size() > ((this->display.width_px - column_px) / this->font.width_px)) {
 		this->error = {character_framebuffer::ErrorCode::ParamStringLength, 0, 0, 0};
 		return this->error.code;
 	}
@@ -172,13 +172,13 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 		input_char[0] = input_string.at(i);
 
 		this->error.return_value = cfb_draw_text(this->display.device_ptr, input_char,
-		static_cast<int16_t>((column_idx + i) * this->font.width_px),
-		static_cast<int16_t>(row_idx * this->font.height_px));
+		static_cast<int16_t>(column_px + (this->font.width_px * i)),
+		static_cast<int16_t>(row_px));
 
 		if (this->error.return_value != 0) {
 			this->error.code = character_framebuffer::ErrorCode::CfbStringWrite;
-			this->error.row_idx = row_idx;
-			this->error.column_idx = (column_idx + i);
+			this->error.row_px = row_px;
+			this->error.column_px = column_px + (this->font.width_px * i);
 			return this->error.code;
 		}
 	}
@@ -198,8 +198,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbRamFlush;
-		this->error.row_idx = 0;
-		this->error.column_idx = 0;
+		this->error.row_px = 0;
+		this->error.column_px = 0;
 		return this->error.code;
 	}
 
