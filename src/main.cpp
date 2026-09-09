@@ -19,7 +19,7 @@ int main(void) {
 
 	static monochrome_display::MonochromeDisplay mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
 
-	error_code = mc0.screen_clear();
+	error_code = mc0.grid_clear();
 
 	if (error_code != monochrome_display::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
@@ -27,7 +27,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	error_code = mc0.screen_string_print("UPCOMING", 0, 2);
+	error_code = mc0.grid_string_write("UPCOMING", 0, 2);
 
 	if (error_code != monochrome_display::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
@@ -35,7 +35,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	error_code = mc0.screen_string_print("PROJECT!", 1, 2);
+	error_code = mc0.grid_string_write("PROJECT!", 1, 2);
 
 	if (error_code != monochrome_display::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
@@ -43,7 +43,13 @@ int main(void) {
 		while (1) {}
 	}
 
-	error_code = mc0.screen_string_print("STAY TUNED:)", 3, 0);
+	error_code = mc0.grid_string_write("STAY TUNED:)", 3, 0);
+
+	if (error_code != monochrome_display::ErrorCode::Ok) {
+		gpio_pin_toggle_dt(&error_led);
+	}
+
+	error_code = mc0.grid_print();
 
 	if (error_code != monochrome_display::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
