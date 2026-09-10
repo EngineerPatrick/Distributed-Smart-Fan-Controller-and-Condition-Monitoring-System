@@ -202,7 +202,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 	for (size_t i = 0; i < input_string.size(); i++) {
 		input_char[0] = input_string.at(i);
 
-		this->error.return_value = cfb_draw_text(this->display.device_ptr, input_char,
+		this->error.return_value = cfb_print(this->display.device_ptr, input_char,
 		static_cast<int16_t>(column_px + (this->font.width_px * i)),
 		static_cast<int16_t>(row_px));
 
