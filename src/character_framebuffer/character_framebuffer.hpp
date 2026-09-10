@@ -54,7 +54,7 @@ namespace character_framebuffer {
 
 			/*
 			*
-			*	Copy/move constructors/operators are deleted because there should be only 1 instance of this class
+			*	Copy/move constructors/operators are deleted to prevent the creation of another instance of this class through these operations
 			*
 			*/
 			CharacterFramebuffer(const CharacterFramebuffer&) = delete;
@@ -176,7 +176,7 @@ namespace character_framebuffer {
 *	@param[in]	font_idx						Index of the font in Zephyr's catalog
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
-*	@retval		ParamFontIndex					If font_idx is greater than the number of fonts available in Zephyr's catalog
+*	@retval		ParamFontIndex					If font_idx is greater than or equal to the number of fonts available in Zephyr's catalog
 *	@retval		CfbFontSet						If an error occurs when setting the font to that at index font_idx
 *	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at index font_idx or if the obtained size is 0
 *	@retval		DisplayResolution				If the obtained size of the font is greater than the obtained size of the display
@@ -259,8 +259,8 @@ namespace character_framebuffer {
 *
 *	@brief		Method to obtain the sizes of the targeted display
 *
-*	@param[in]	display_width_px				Reference to the variable where to store the display width
-*	@param[in]	display_height_px				Reference to the variable where to store the display height
+*	@param[out]	display_width_px				Reference to the variable where to store the display width
+*	@param[out]	display_height_px				Reference to the variable where to store the display height
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
 *	@retval		Ok								If no error occurs
@@ -276,8 +276,8 @@ namespace character_framebuffer {
 *
 *	@brief		Method to obtain the sizes of the font
 *
-*	@param[in]	font_width_px					Reference to the variable where to store the font width
-*	@param[in]	font_height_px					Reference to the variable where to store the font height
+*	@param[out]	font_width_px					Reference to the variable where to store the font width
+*	@param[out]	font_height_px					Reference to the variable where to store the font height
 *
 *	@retval		CfbFontUnready					If the font is not ready to be used
 *	@retval		Ok								If no error occurs

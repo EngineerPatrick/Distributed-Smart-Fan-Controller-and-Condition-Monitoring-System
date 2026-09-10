@@ -36,11 +36,11 @@ namespace monochrome_display {
 
 		public:
 
-			MonochromeDisplay (const struct device* const monochrome_display_device_ptr);
+			explicit MonochromeDisplay(const struct device* const monochrome_display_device_ptr);
 
 			/*
 			*
-			*	Copy/move constructors/operators are deleted because there should be only 1 instance of this class
+			*	Copy/move constructors/operators are deleted to prevent the creation of another instance of this class through these operations
 			*
 			*/
 			MonochromeDisplay(const MonochromeDisplay&) = delete;
@@ -139,11 +139,11 @@ namespace monochrome_display {
 *	@brief		Method to clear the grid
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
-*	@retval		CfbRam						If an error occurs with the CFB
+*	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
 *	@post		If the CFB is not ready to be used then error is set to CfbUnready
-*	@post		If an error occurs with the CFB then error is set to CfbRam
+*	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success the grid is cleared and error is set to Ok
 *
 */
@@ -154,20 +154,20 @@ namespace monochrome_display {
 *
 *	@brief		Method to write a string at a specific position of the grid
 *
-*	@param[in]	input_string					String to print
+*	@param[in]	input_string					String to write
 *	@param[in]	row_idx							Row index of the grid
 *	@param[in]	column_idx						Column index of the grid
 *
 *	@retval		CfbTextUnready					If the text is not ready to be used
 *	@retval		ParamPositionIndexes			If the position indexes are out of range
 *	@retval		ParamStringLength				If the length of the string from column_idx exceeds the grid width
-*	@retval		CfbRam						If an error occurs with the CFB
+*	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
 *	@post		If the text is not ready to be used then error is set to CfbTextUnready
 *	@post		If the position indexes are out of range then error is set to ParamPositionIndexes
 *	@post		If the length of the string from column_idx exceeds the grid width then error is set to ParamStringLength
-*	@post		If an error occurs with the CFB then error is set to CfbRam
+*	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success input_string is written in the grid at the position specified by the indexes and error is set to Ok
 *
 */
@@ -179,11 +179,11 @@ namespace monochrome_display {
 *	@brief		Method to print the grid on the display
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
-*	@retval		CfbRam						If an error occurs with the CFB
+*	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
 *	@post		If the CFB is not ready to be used then error is set to CfbUnready
-*	@post		If an error occurs with the CFB then error is set to CfbRam
+*	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success the grid is printed on the display and error is set to Ok
 *
 */
