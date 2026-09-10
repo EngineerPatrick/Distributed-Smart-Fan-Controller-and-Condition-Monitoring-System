@@ -1,8 +1,6 @@
 set(BOARD black_f407ve)
-set(DTC_OVERLAY_FILE app.overlay)
-set(CONF_FILE prj.conf)
 
-cmake_minimum_required(VERSION 4.2.3)
+cmake_minimum_required(VERSION 3.28.0)
 find_package(Zephyr)
 project(Distributed-Smart-Fan-Controller-and-Condition-Monitoring-System)
 

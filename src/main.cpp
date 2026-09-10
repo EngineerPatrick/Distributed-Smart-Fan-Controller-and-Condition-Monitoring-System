@@ -13,7 +13,7 @@
 
 int main(void) {
 	monochrome_display::ErrorCode error_code = monochrome_display::ErrorCode::Ok;
-	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(red_led), gpios);
+	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
 
 	gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_ACTIVE);
 

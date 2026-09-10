@@ -3,12 +3,12 @@
 
 / {
 	aliases {
-		red-led = &led0;
+		error-led = &red_led;
 		readings-display = &display0;
 	};
 
 	leds {
-		led0: pda5_led {
+		red_led: pd5_led {
 			gpios = <&gpiod 5 GPIO_ACTIVE_LOW>;
 		};
 	};
