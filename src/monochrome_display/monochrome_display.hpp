@@ -24,12 +24,17 @@ namespace monochrome_display {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DeviceUnready,
-		CfbUnready,
-		CfbTextUnready,
+		MainUnready,
+		TextUnready,
 		CfbRam,
 		ParamPositionIndexes,
 		ParamStringLength
+	};
+
+	enum class FontSize {
+		Small,
+		Medium,
+		Large
 	};
 
 	class MonochromeDisplay {
@@ -48,8 +53,10 @@ namespace monochrome_display {
 			MonochromeDisplay& operator=(const MonochromeDisplay&) = delete;
 			MonochromeDisplay& operator=(MonochromeDisplay&&) = delete;
 
+			monochrome_display::ErrorCode font_set(monochrome_display::FontSize font_size);
+
 			monochrome_display::ErrorCode grid_clear();
-			monochrome_display::ErrorCode grid_string_write(std::string_view input_string, size_t row_idx, size_t column_idx);
+			monochrome_display::ErrorCode grid_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx);
 //			monochrome_display::ErrorCode string_blink();
 			monochrome_display::ErrorCode grid_print();
 
@@ -58,28 +65,35 @@ namespace monochrome_display {
 		private:
 
 			struct SystemState {
-				const struct device* const device_ptr = nullptr;
 				bool main_ready = false;
 				bool text_ready = false;
 			};
 
 			struct FontState {
-				uint8_t idx = 0;
-				size_t width_px = 0;
-				size_t height_px = 0;
+				monochrome_display::FontSize size = monochrome_display::FontSize::Small;
+				std::size_t width_px = 0;
+				std::size_t height_px = 0;
 			};
 
 			struct DisplayGrid {
-				size_t width_cells = 0;
-				size_t height_cells = 0;
+				std::size_t width_cells = 0;
+				std::size_t height_cells = 0;
+			};
+
+			struct DisplayState {
+				const std::size_t width_px = 0;
+				const std::size_t height_px = 0;
+				monochrome_display::MonochromeDisplay::DisplayGrid grid;
 			};
 
 			SystemState system;
 			character_framebuffer::CharacterFramebuffer cfb;
 
-			FontState font;
-			DisplayGrid grid;
+			monochrome_display::MonochromeDisplay::FontState font;
+			monochrome_display::MonochromeDisplay::DisplayState display;
 			monochrome_display::ErrorCode error = monochrome_display::ErrorCode::Ok;
+
+			[[nodiscard("Internal error: necessary struct discarded")]] monochrome_display::MonochromeDisplay::DisplayState init_operations();
 	};
 }
 
@@ -122,10 +136,9 @@ namespace monochrome_display {
 *	@param[in]	monochrome_display_device_ptr	Pointer to the device struct of the target display
 *
 *	@pre		monochrome_display_device_ptr points to a valid device struct of a monochrome display
-*	@post		If the target display is not ready to be used then error is set to DeviceUnready
-*	@post		If the CFB is not ready to be used then error is set to CfbUnready
-*	@post		If the text is not ready to be used then error is set to CfbTextUnready
-*	@post		On success the CFB is ready to be used, the font sizes are saved in font, the grid sizes are saved in grid and error is set to Ok
+*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
+*	@post		If an error occurs when obtaining the sizes of the display and of the font then error is set to TextUnready
+*	@post		On success the display is ready to be used, the font sizes are saved in font, the grid sizes are saved in grid and error is set to Ok
 *
 *	@invariant	The cell-width of the grid is equal to the pixel-width of the display divided by the pixel-width of the font
 *	@invariant	The cell-height of the grid is equal to the pixel-height of the display divided by the pixel-height of the font
@@ -134,15 +147,33 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::MonochromeDisplay::grid_clear()
+*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(monochrome_display::FontSize font_size)
+*
+*	@brief		Method to set the size of the font to one of the available options
+*
+*	@param[in]	font_size						Option for the size of the font
+*
+*	@retval		MainUnready						If an error occurs in the initialization of the CFB
+*	@retval		TextUnready						If an error occurs when setting the font
+*	@retval		Ok								If no error occurs
+*
+*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
+*	@post		If an error occurs when setting the font then error is set to TextUnready and a new call is required to use the text
+*	@post		On success the font is set to the specified option, the new grid is computed and error is set to Ok
+*
+*/
+
+/**
+*
+*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_clear()
 *
 *	@brief		Method to clear the grid
 *
-*	@retval		CfbUnready						If the CFB is not ready to be used
+*	@retval		MainUnready						If an error occurs in the initialization of the CFB
 *	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
-*	@post		If the CFB is not ready to be used then error is set to CfbUnready
+*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
 *	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success the grid is cleared and error is set to Ok
 *
@@ -150,7 +181,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::MonochromeDisplay::grid_string_write(std::string_view input_string, size_t row_idx, size_t column_idx)
+*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx)
 *
 *	@brief		Method to write a string at a specific position of the grid
 *
@@ -158,13 +189,13 @@ namespace monochrome_display {
 *	@param[in]	row_idx							Row index of the grid
 *	@param[in]	column_idx						Column index of the grid
 *
-*	@retval		CfbTextUnready					If the text is not ready to be used
+*	@retval		TextUnready						If the text is not ready to be used
 *	@retval		ParamPositionIndexes			If the position indexes are out of range
 *	@retval		ParamStringLength				If the length of the string from column_idx exceeds the grid width
 *	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
-*	@post		If the text is not ready to be used then error is set to CfbTextUnready
+*	@post		If the text is not ready to be used then error is set to TextUnready
 *	@post		If the position indexes are out of range then error is set to ParamPositionIndexes
 *	@post		If the length of the string from column_idx exceeds the grid width then error is set to ParamStringLength
 *	@post		If an error occurs with CFB's RAM then error is set to CfbRam
@@ -174,15 +205,15 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_print()
+*	@fn			monochrome_display::ErrorCode monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_print()
 *
 *	@brief		Method to print the grid on the display
 *
-*	@retval		CfbUnready						If the CFB is not ready to be used
+*	@retval		MainUnready						If an error occurs in the initialization of the CFB
 *	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
-*	@post		If the CFB is not ready to be used then error is set to CfbUnready
+*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
 *	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success the grid is printed on the display and error is set to Ok
 *
@@ -190,7 +221,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::MonochromeDisplay::error_get() const
+*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::error_get() const
 *
 *	@return		The error variable
 *

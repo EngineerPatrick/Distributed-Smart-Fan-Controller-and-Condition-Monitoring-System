@@ -41,8 +41,8 @@ namespace character_framebuffer {
 	struct ErrorState {
 		ErrorCode code = character_framebuffer::ErrorCode::Ok;
 		int return_value = 0;
-		size_t row_px = 0;
-		size_t column_px = 0;
+		std::size_t row_px = 0;
+		std::size_t column_px = 0;
 	};
 
 	class CharacterFramebuffer {
@@ -62,14 +62,14 @@ namespace character_framebuffer {
 			CharacterFramebuffer& operator=(const CharacterFramebuffer&) = delete;
 			CharacterFramebuffer& operator=(CharacterFramebuffer&&) = delete;
 
-			character_framebuffer::ErrorCode font_set(uint8_t font_idx);
+			character_framebuffer::ErrorCode font_set(std::uint8_t font_idx);
 
 			character_framebuffer::ErrorCode ram_clear();
-			character_framebuffer::ErrorCode ram_string_write(const std::string_view input_string, const size_t row_px, const size_t column_px);
+			character_framebuffer::ErrorCode ram_string_write(const std::string_view input_string, const std::size_t row_px, const std::size_t column_px);
 			character_framebuffer::ErrorCode ram_flush();
 
-			character_framebuffer::ErrorCode display_sizes_get(size_t& display_width_px, size_t& display_height_px);
-			character_framebuffer::ErrorCode font_sizes_get(size_t& font_width_px, size_t& font_height_px);
+			character_framebuffer::ErrorCode display_sizes_get(std::size_t& display_width_px, std::size_t& display_height_px);
+			character_framebuffer::ErrorCode font_sizes_get(std::size_t& font_width_px, std::size_t& font_height_px);
 			[[nodiscard("Called error getter and discarded its return value")]] character_framebuffer::ErrorState error_state_get() const;
 
 		private:
@@ -83,22 +83,22 @@ namespace character_framebuffer {
 
 			struct TargetDisplay {
 				const struct device* const device_ptr = nullptr;
-				const size_t width_px = 0;
-				const size_t height_px = 0;
+				const std::size_t width_px = 0;
+				const std::size_t height_px = 0;
 			};
 
 			struct FontState {
-				uint8_t idx = 0;
-				uint8_t width_px = 0;
-				uint8_t height_px = 0;
+				std::uint8_t idx = 0;
+				std::uint8_t width_px = 0;
+				std::uint8_t height_px = 0;
 			};
 
 			character_framebuffer::ErrorState error;
-			SystemState system;
-			TargetDisplay display;
-			FontState font;
+			character_framebuffer::CharacterFramebuffer::SystemState system;
+			character_framebuffer::CharacterFramebuffer::TargetDisplay display;
+			character_framebuffer::CharacterFramebuffer::FontState font;
 
-			[[nodiscard("Internal error: necessary struct discarded")]] TargetDisplay init_operations(const struct device* const monochrome_display_device_ptr);
+			[[nodiscard("Internal error: necessary struct discarded")]] character_framebuffer::CharacterFramebuffer::TargetDisplay init_operations(const struct device* const monochrome_display_device_ptr);
 	};
 }
 
@@ -170,7 +170,7 @@ namespace character_framebuffer {
 
 /**
 *
-*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(uint8_t font_idx)
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(std::uint8_t font_idx)
 *
 *	@brief		Method to select the font from Zephyr's catalog
 *
@@ -187,7 +187,7 @@ namespace character_framebuffer {
 *	@pre		The required font has been set in prj.conf
 *	@post		If the CFB is not ready to be used then error.code is set to CfbUnready
 *	@post		If font_idx is out of range then the font is not changed and it is still possible to use it
-*	@post		If an error with Zephyr's CFB API occurs then another call is necessary to use the font
+*	@post		If an error with Zephyr's CFB API occurs then another call is required to use the font
 *	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbKerningSet
 *	@post		If an error occurs when setting the font to that at index font_idx with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
 *	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
@@ -214,7 +214,7 @@ namespace character_framebuffer {
 
 /**
 *
-*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(const std::string_view input_string, const size_t row_px, const size_t column_px)
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(const std::string_view input_string, const std::size_t row_px, const std::size_t column_px)
 *
 *	@brief		Method to write a string at specific pixel coordinates of framebuffer's RAM
 *
@@ -258,7 +258,7 @@ namespace character_framebuffer {
 
 /**
 *
-*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(size_t& display_width_px, size_t& display_height_px)
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(std::size_t& display_width_px, std::size_t& display_height_px)
 *
 *	@brief		Method to obtain the sizes of the targeted display
 *
@@ -275,7 +275,7 @@ namespace character_framebuffer {
 
 /**
 *
-*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(size_t& font_width_px, size_t& font_height_px)
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(std::size_t& font_width_px, std::size_t& font_height_px)
 *
 *	@brief		Method to obtain the sizes of the font
 *
