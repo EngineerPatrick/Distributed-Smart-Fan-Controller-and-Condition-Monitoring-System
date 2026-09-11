@@ -77,6 +77,7 @@ namespace character_framebuffer {
 			struct SystemState {
 				bool cfb_init = false;
 				bool cfb_ready = false;
+				bool kerning_ready = false;
 				bool font_ready = false;
 			};
 
@@ -148,7 +149,7 @@ namespace character_framebuffer {
 *	@post		If the target display is not ready to be used then error.code is set to DeviceUnready
 *	@post		If an error occurs when initializing the framebuffer with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbInit
 *	@post		If the display width and height parameters obtained from Zephyr's CFB API are 0 then error.code is set to DisplayResolution
-*	@post		If an error occurs when setting the kerning with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
+*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
 *	@post		If an error occurs when setting the font to that at index 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
 *	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
 *	@post		If the size of the font obtained with Zephyr's CFB API is 0 then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
@@ -176,6 +177,7 @@ namespace character_framebuffer {
 *	@param[in]	font_idx						Index of the font in Zephyr's catalog
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
+*	@retval		CfbKerningSet					If an error occurs when setting the kerning to 0
 *	@retval		ParamFontIndex					If font_idx is greater than or equal to the number of fonts available in Zephyr's catalog
 *	@retval		CfbFontSet						If an error occurs when setting the font to that at index font_idx
 *	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at index font_idx or if the obtained size is 0
@@ -186,7 +188,8 @@ namespace character_framebuffer {
 *	@post		If the CFB is not ready to be used then error.code is set to CfbUnready
 *	@post		If font_idx is out of range then the font is not changed and it is still possible to use it
 *	@post		If an error with Zephyr's CFB API occurs then another call is necessary to use the font
-*	@post		If an error occurs when setting the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
+*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbKerningSet
+*	@post		If an error occurs when setting the font to that at index font_idx with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
 *	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
 *	@post		If the size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
 *	@post		On success the font is set to that at index font_idx and error.code is set to Ok

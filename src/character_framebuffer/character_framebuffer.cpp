@@ -67,6 +67,20 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 	}
 
 	this->system.font_ready = false;
+
+	if(!this->system.kerning_ready) {
+		this->error.return_value = cfb_set_kerning(this->display.device_ptr, 0);
+
+		if (this->error.return_value != 0) {
+			this->error.code = character_framebuffer::ErrorCode::CfbFontKerningSet;
+			this->error.row_px = 0;
+			this->error.column_px = 0;
+			return this->error_code;
+		}
+
+		this->system.kerning_ready = true;
+	}
+
 	this->error.return_value = cfb_framebuffer_set_font(this->display.device_ptr, font_idx);
 
 	if (this->error.return_value != 0) {
@@ -118,6 +132,8 @@ display{init_operations(monochrome_display_device_ptr)} {
 		this->error.column_px = 0;
 		return;
 	}
+
+	this->system.kerning_ready = true;
 
 	if (this->font_set(0) != character_framebuffer::ErrorCode::Ok) {
 		return;
