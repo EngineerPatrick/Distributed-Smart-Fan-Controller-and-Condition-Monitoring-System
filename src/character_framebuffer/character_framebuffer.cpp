@@ -19,8 +19,8 @@
 #include <zephyr/display/cfb.h>
 
 character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer::CharacterFramebuffer::init_operations(const struct device* const monochrome_display_device_ptr) {
-	size_t display_width_px = 0;
-	size_t display_height_px = 0;
+	std::size_t display_width_px = 0;
+	std::size_t display_height_px = 0;
 
 	if (!device_is_ready(monochrome_display_device_ptr)) {
 		this->error = {character_framebuffer::ErrorCode::DeviceUnready, 0, 0, 0};
@@ -38,15 +38,15 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 
 	this->system.cfb_init = true;
 
-	display_width_px = static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_WIDTH));
-	display_height_px = static_cast<size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_HEIGHT));
+	display_width_px = static_cast<std::size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_WIDTH));
+	display_height_px = static_cast<std::size_t>(cfb_get_display_parameter(monochrome_display_device_ptr, CFB_DISPLAY_HEIGHT));
 
 	if (!display_width_px || !display_height_px) {
 		this->error = {character_framebuffer::ErrorCode::DisplayResolution, 0, 0, 0};
 		return {{monochrome_display_device_ptr}};
 	}
 
-	TargetDisplay display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
+	character_framebuffer::CharacterFramebuffer::TargetDisplay display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
 
 	this->system.cfb_ready = true;
 	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
@@ -54,7 +54,7 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(uint8_t font_idx) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(std::uint8_t font_idx) {
 
 	if (!this->system.cfb_ready) {
 		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
@@ -75,7 +75,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 			this->error.code = character_framebuffer::ErrorCode::CfbFontKerningSet;
 			this->error.row_px = 0;
 			this->error.column_px = 0;
-			return this->error_code;
+			return this->error.code;
 		}
 
 		this->system.kerning_ready = true;
@@ -149,7 +149,7 @@ character_framebuffer::CharacterFramebuffer::~CharacterFramebuffer() {
 	}
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(size_t& display_width_px, size_t& display_height_px) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(std::size_t& display_width_px, std::size_t& display_height_px) {
 
 	if (!this->system.cfb_ready) {
 		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
@@ -163,7 +163,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::di
 	return this->error.code;
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(size_t& font_width_px, size_t& font_height_px) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(std::size_t& font_width_px, std::size_t& font_height_px) {
 
 	if (!this->system.font_ready) {
 		this->error = {character_framebuffer::ErrorCode::CfbFontUnready, 0, 0, 0};
@@ -197,7 +197,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 	return this->error.code;
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(std::string_view input_string, const size_t row_px, const size_t column_px) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(std::string_view input_string, const std::size_t row_px, const std::size_t column_px) {
 	char input_char[2] = {' ', '\0'};
 
 	if (!this->system.font_ready) {
@@ -215,7 +215,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 		return this->error.code;
 	}
 
-	for (size_t i = 0; i < input_string.size(); i++) {
+	for (std::size_t i = 0; i < input_string.size(); i++) {
 		input_char[0] = input_string.at(i);
 
 		this->error.return_value = cfb_print(this->display.device_ptr, input_char,
