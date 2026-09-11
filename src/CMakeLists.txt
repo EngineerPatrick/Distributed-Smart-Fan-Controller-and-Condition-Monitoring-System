@@ -7,3 +7,5 @@ target_sources(app
 add_subdirectory(monochrome_display)
 
 add_subdirectory(character_framebuffer)
+
+add_subdirectory(ui_display)
