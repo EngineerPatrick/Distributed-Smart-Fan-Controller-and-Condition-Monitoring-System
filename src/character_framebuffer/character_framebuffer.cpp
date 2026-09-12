@@ -18,7 +18,7 @@
 #include <zephyr/device.h>
 #include <zephyr/display/cfb.h>
 
-character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer::CharacterFramebuffer::init_operations(const struct device* const monochrome_display_device_ptr) {
+character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer::CharacterFramebuffer::init_operations(const struct device* const monochrome_display_device_ptr) {
 	std::size_t display_width_px = 0;
 	std::size_t display_height_px = 0;
 
@@ -46,7 +46,7 @@ character_framebuffer::CharacterFramebuffer::TargetDisplay character_framebuffer
 		return {{monochrome_display_device_ptr}};
 	}
 
-	character_framebuffer::CharacterFramebuffer::TargetDisplay display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
+	character_framebuffer::CharacterFramebuffer::DisplayDevice display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
 
 	this->system.cfb_ready = true;
 	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};

@@ -10,4 +10,4 @@ add_subdirectory(character_framebuffer)
 
 add_subdirectory(ui_display)
 
-add_subdirectory(bme280)
+add_subdirectory(temperature_sensor)

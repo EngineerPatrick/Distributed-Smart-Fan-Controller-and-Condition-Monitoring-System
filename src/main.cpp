@@ -6,7 +6,7 @@
 
 #include "monochrome_display.hpp"
 #include "ui_display.hpp"
-#include "bme280.hpp"
+#include "temperature_sensor.hpp"
 #include <cstdint>
 #include <zephyr/devicetree.h>
 #include <zephyr/device.h>
@@ -24,12 +24,20 @@ int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
 	std::int32_t temp = 0;
 	ui_display::ErrorCode ui_display_error_code = ui_display::ErrorCode::Ok;
-	bme280::ErrorCode bme280_error_code = bme280::ErrorCode::Ok;
+	temperature_sensor::ErrorState temperature_sensor_error_state = {temperature_sensor::ErrorCode::Ok, 0};
 
 	gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_ACTIVE);
 
 	static monochrome_display::MonochromeDisplay mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
-	static bme280::Bme280 bme{DEVICE_DT_GET(DT_ALIAS(SENSOR0_ALIAS)), &iodev, &ctx};
+	static temperature_sensor::TemperatureSensor bme{DEVICE_DT_GET(DT_ALIAS(SENSOR0_ALIAS)), &iodev, &ctx};
+
+	temperature_sensor_error_state = bme.error_state_get();
+
+	if (temperature_sensor_error_state.code != temperature_sensor::ErrorCode::Ok) {
+		gpio_pin_toggle_dt(&error_led);
+
+		while (1) {}
+	}
 
 	ui_display_error_code = ui_display::units_write(mc0);
 
@@ -41,9 +49,9 @@ int main(void) {
 
 	while (1) {
 
-		bme280_error_code = bme.temp_read(&temp);
+		temperature_sensor_error_state.code = bme.temp_read(&temp);
 
-		if (bme280_error_code != bme280::ErrorCode::Ok) {
+		if (temperature_sensor_error_state.code != temperature_sensor::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
