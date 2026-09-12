@@ -81,7 +81,7 @@ namespace character_framebuffer {
 				bool font_ready = false;
 			};
 
-			struct TargetDisplay {
+			struct DisplayDevice {
 				const struct device* const device_ptr = nullptr;
 				const std::size_t width_px = 0;
 				const std::size_t height_px = 0;
@@ -95,10 +95,10 @@ namespace character_framebuffer {
 
 			character_framebuffer::ErrorState error;
 			character_framebuffer::CharacterFramebuffer::SystemState system;
-			character_framebuffer::CharacterFramebuffer::TargetDisplay display;
+			character_framebuffer::CharacterFramebuffer::DisplayDevice display;
 			character_framebuffer::CharacterFramebuffer::FontState font;
 
-			[[nodiscard("Internal error: necessary struct discarded")]] character_framebuffer::CharacterFramebuffer::TargetDisplay init_operations(const struct device* const monochrome_display_device_ptr);
+			[[nodiscard("Internal error: necessary struct discarded")]] character_framebuffer::CharacterFramebuffer::DisplayDevice init_operations(const struct device* const monochrome_display_device_ptr);
 	};
 }
 
