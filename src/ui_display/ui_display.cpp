@@ -100,8 +100,12 @@ static std::string_view digit_to_str_view(std::uint8_t dig) {
 	return "Error: internal";
 }
 
-ui_display::ErrorCode ui_display::temp_write(monochrome_display::MonochromeDisplay& mc_obj, std::uint32_t temp) {
+ui_display::ErrorCode ui_display::temp_write(monochrome_display::MonochromeDisplay& mc_obj, std::int32_t temp) {
 	std::uint8_t dig_arr[3] = {0, 0, 0};
+
+	if (temp > 9999 || temp < 0) {
+		return ui_display::ErrorCode::ParamTemp;
+	}
 
 	digit_extract(temp, dig_arr);
 	std::string_view dig1_str_view = digit_to_str_view(dig_arr[0]);
