@@ -5,6 +5,7 @@
 	aliases {
 		error-led = &red_led;
 		readings-display = &display0;
+		temp-sensor = &sensor0;
 	};
 
 	leds {
@@ -31,5 +32,11 @@
 		display-offset = <0>;
 		multiplex-ratio = <63>;
 		prechargep = <0x22>;
+	};
+
+	sensor0: bme280@76 {
+		compatible = "bosch,bme280";
+		reg = <0x76>;
+		status = "okay";
 	};
 };
