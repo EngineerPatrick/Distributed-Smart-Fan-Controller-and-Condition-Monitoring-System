@@ -11,7 +11,7 @@ namespace ui_display {
 	};
 
 	ui_display::ErrorCode units_write(monochrome_display::MonochromeDisplay& mc_obj);
-
+	ui_display::ErrorCode temp_write(monochrome_display::MonochromeDisplay& mc_obj, uint32_t temp);
 }
 
 #endif
