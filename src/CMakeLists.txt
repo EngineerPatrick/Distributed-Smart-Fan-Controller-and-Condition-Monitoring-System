@@ -8,6 +8,6 @@ add_subdirectory(monochrome_display)
 
 add_subdirectory(character_framebuffer)
 
-add_subdirectory(ui_display)
+add_subdirectory(display_ui)
 
 add_subdirectory(temperature_sensor)
