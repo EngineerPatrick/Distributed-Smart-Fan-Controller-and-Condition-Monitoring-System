@@ -17,8 +17,7 @@
 #define DISPLAY0_ALIAS readings_display
 #define SENSOR0_ALIAS temp_sensor
 
-SENSOR_DT_READ_IODEV(iodev, DT_ALIAS(temp_sensor), {SENSOR_CHAN_AMBIENT_TEMP, 0});
-RTIO_DEFINE(ctx, 1, 1);
+DEFINE_TEMPERATURE_SENSOR(SENSOR0_ALIAS)
 
 int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
@@ -29,7 +28,7 @@ int main(void) {
 	gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_ACTIVE);
 
 	static monochrome_display::MonochromeDisplay mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
-	static temperature_sensor::TemperatureSensor bme{DEVICE_DT_GET(DT_ALIAS(SENSOR0_ALIAS)), &iodev, &ctx};
+	static temperature_sensor::TemperatureSensor bme{TEMPERATURE_SENSOR_DEVICE(SENSOR0_ALIAS)};
 
 	temperature_sensor_error_state = bme.error_state_get();
 

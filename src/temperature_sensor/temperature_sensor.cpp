@@ -12,6 +12,7 @@
 */
 
 #include "temperature_sensor.hpp"
+#include <cmath>
 #include <zephyr/device.h>
 #include <zephyr/rtio/rtio.h>
 #include <zephyr/drivers/sensor.h>
@@ -37,8 +38,11 @@ const struct sensor_decoder_api* const temperature_sensor::TemperatureSensor::in
 	return decoder;
 }
 
-temperature_sensor::TemperatureSensor::TemperatureSensor(const struct device* const temperature_sensor_device_ptr, const struct rtio_iodev* iodev_ptr, struct rtio* ctx_ptr) :
-sensor{{temperature_sensor_device_ptr}, {iodev_ptr}, {ctx_ptr}, {this->init_operations(temperature_sensor_device_ptr)}} {}
+temperature_sensor::TemperatureSensor::TemperatureSensor(temperature_sensor::SensorDevice temperature_sensor_device) :
+sensor{{temperature_sensor_device.device_ptr},
+{temperature_sensor_device.iodev_ptr},
+{temperature_sensor_device.ctx_ptr},
+{this->init_operations(temperature_sensor_device.device_ptr)}} {}
 
 temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(std::int16_t& temp_c_x100) {
 	std::uint8_t rx_buff[128];
@@ -63,12 +67,20 @@ temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(s
 		return this->error.code;
 	}
 
-/*
-*
-*	This formula is the inverse of the one provided by Zephyr's API to calculate Q31 data: Q31 * 2^16 / 2^31
-*
-*/
-	this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) * 100 * 65536) / 2147483648);
+	/*
+	*
+	*	This formula is the inverse of the one provided by Zephyr's API to calculate Q31 data: Q31 * 2^16 / 2^31
+	*
+	*/
+	if (this->temp.internal_data.shift >= 0) {
+		this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) *
+		100 << this->temp.internal_data.shift) >> 31);
+	}
+
+	else {
+		this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) * 100)
+		>> (31 + this->temp.internal_data.shift));
+	}
 
 	temp_c_x100 = this->temp.value_c_x100;
 
