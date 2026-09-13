@@ -22,7 +22,7 @@ RTIO_DEFINE(ctx, 1, 1);
 
 int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
-	std::int32_t temp = 0;
+	std::int16_t temp = 0;
 	ui_display::ErrorCode ui_display_error_code = ui_display::ErrorCode::Ok;
 	temperature_sensor::ErrorState temperature_sensor_error_state = {temperature_sensor::ErrorCode::Ok, 0};
 
@@ -49,7 +49,7 @@ int main(void) {
 
 	while (1) {
 
-		temperature_sensor_error_state.code = bme.temp_read(&temp);
+		temperature_sensor_error_state.code = bme.temp_read(temp);
 
 		if (temperature_sensor_error_state.code != temperature_sensor::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);

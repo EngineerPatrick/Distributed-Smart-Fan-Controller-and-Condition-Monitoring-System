@@ -1,3 +1,16 @@
+/**
+*
+*	@file		temperature_sensor.cpp
+*
+*	@brief		Implementation for the temperature_sensor module
+*
+*	@details	Employs Zephyr's Sensor API to read the temperature
+*
+*				Integrates Zephyr's decoder and Q31 formula to obtain
+*				the temperature value in hundredth of Celsius degrees
+*
+*/
+
 #include "temperature_sensor.hpp"
 #include <zephyr/device.h>
 #include <zephyr/rtio/rtio.h>
@@ -19,7 +32,7 @@ const struct sensor_decoder_api* const temperature_sensor::TemperatureSensor::in
 		return nullptr;
 	}
 
-	this->system.decoder_ready = true;
+	this->system.reading_ready = true;
 	this->error = {temperature_sensor::ErrorCode::Ok, 0};
 	return decoder;
 }
@@ -27,12 +40,12 @@ const struct sensor_decoder_api* const temperature_sensor::TemperatureSensor::in
 temperature_sensor::TemperatureSensor::TemperatureSensor(const struct device* const temperature_sensor_device_ptr, const struct rtio_iodev* iodev_ptr, struct rtio* ctx_ptr) :
 sensor{{temperature_sensor_device_ptr}, {iodev_ptr}, {ctx_ptr}, {this->init_operations(temperature_sensor_device_ptr)}} {}
 
-temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(std::int32_t* temp_c_x100) {
+temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(std::int16_t& temp_c_x100) {
 	std::uint8_t rx_buff[128];
 	std::uint32_t fit = 0;
 
-	if (!this->system.decoder_ready) {
-		this->error = {temperature_sensor::ErrorCode::DecoderUnready, 0};
+	if (!this->system.reading_ready) {
+		this->error = {temperature_sensor::ErrorCode::ReadingUnready, 0};
 		return this->error.code;
 	}
 
@@ -55,9 +68,9 @@ temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(s
 *	This formula is the inverse of the one provided by Zephyr's API to calculate Q31 data: Q31 * 2^16 / 2^31
 *
 */
-	this->temp.value_c_x100 = static_cast<std::int32_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) * 100 * 65536) / 2147483648);
+	this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) * 100 * 65536) / 2147483648);
 
-	*temp_c_x100 = this->temp.value_c_x100;
+	temp_c_x100 = this->temp.value_c_x100;
 
 	this->error = {temperature_sensor::ErrorCode::Ok, 0};
 	return this->error.code;
