@@ -49,7 +49,7 @@ int main(void) {
 
 	while (1) {
 
-		temperature_sensor_error_state.code = bme.temp_read(&temp);
+		temperature_sensor_error_state.code = bme.temp_read(temp);
 
 		if (temperature_sensor_error_state.code != temperature_sensor::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
