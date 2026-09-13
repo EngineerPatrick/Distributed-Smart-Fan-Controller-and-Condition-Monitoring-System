@@ -1,5 +1,4 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
-#include <st/f4/stm32f407v(e-g)tx-pinctrl.dtsi>
 
 / {
 	aliases {

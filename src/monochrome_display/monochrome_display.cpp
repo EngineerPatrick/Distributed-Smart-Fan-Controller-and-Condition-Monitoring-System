@@ -59,7 +59,7 @@ display{init_operations()} {
 	this->error = monochrome_display::ErrorCode::Ok;
 }
 
-monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(monochrome_display::FontSize font_size) {
+monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(character_framebuffer::FontSizeIdx font_size) {
 
 	if (!this->system.main_ready) {
 		this->error = monochrome_display::ErrorCode::MainUnready;
@@ -70,7 +70,7 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(mo
 
 	switch (font_size) {
 
-		case monochrome_display::FontSize::Small:
+		case character_framebuffer::FontSizeIdx::Small:
 
 			if (this->cfb.font_set(0) != character_framebuffer::ErrorCode::Ok) {
 				this->error = monochrome_display::ErrorCode::TextUnready;
@@ -79,7 +79,7 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(mo
 
 			break;
 
-		case monochrome_display::FontSize::Medium:
+		case character_framebuffer::FontSizeIdx::Medium:
 
 			if (this->cfb.font_set(1) != character_framebuffer::ErrorCode::Ok) {
 				this->error = monochrome_display::ErrorCode::TextUnready;
@@ -88,7 +88,7 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(mo
 
 			break;
 
-		case monochrome_display::FontSize::Large:
+		case character_framebuffer::FontSizeIdx::Large:
 
 			if (this->cfb.font_set(2) != character_framebuffer::ErrorCode::Ok) {
 				this->error = monochrome_display::ErrorCode::TextUnready;

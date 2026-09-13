@@ -31,12 +31,6 @@ namespace monochrome_display {
 		ParamStringLength
 	};
 
-	enum class FontSize {
-		Small,
-		Medium,
-		Large
-	};
-
 	class MonochromeDisplay {
 
 		public:
@@ -53,7 +47,7 @@ namespace monochrome_display {
 			MonochromeDisplay& operator=(const MonochromeDisplay&) = delete;
 			MonochromeDisplay& operator=(MonochromeDisplay&&) = delete;
 
-			monochrome_display::ErrorCode font_set(monochrome_display::FontSize font_size);
+			monochrome_display::ErrorCode font_set(character_framebuffer::FontSizeIdx font_size);
 
 			monochrome_display::ErrorCode grid_clear();
 			monochrome_display::ErrorCode grid_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx);
@@ -70,7 +64,6 @@ namespace monochrome_display {
 			};
 
 			struct FontState {
-				monochrome_display::FontSize size = monochrome_display::FontSize::Small;
 				std::size_t width_px = 0;
 				std::size_t height_px = 0;
 			};
@@ -86,12 +79,12 @@ namespace monochrome_display {
 				monochrome_display::MonochromeDisplay::DisplayGrid grid;
 			};
 
-			SystemState system;
+			monochrome_display::MonochromeDisplay::SystemState system;
 			character_framebuffer::CharacterFramebuffer cfb;
 
-			monochrome_display::MonochromeDisplay::FontState font;
-			monochrome_display::MonochromeDisplay::DisplayState display;
 			monochrome_display::ErrorCode error = monochrome_display::ErrorCode::Ok;
+			monochrome_display::MonochromeDisplay::DisplayState display;
+			monochrome_display::MonochromeDisplay::FontState font;
 
 			[[nodiscard("Internal error: necessary struct discarded")]] monochrome_display::MonochromeDisplay::DisplayState init_operations();
 	};

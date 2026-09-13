@@ -45,6 +45,12 @@ namespace character_framebuffer {
 		std::size_t column_px = 0;
 	};
 
+	enum class FontSizeIdx {
+		Small = 0,
+		Medium = 1,
+		Large = 2
+	};
+
 	class CharacterFramebuffer {
 
 		public:
@@ -177,18 +183,18 @@ namespace character_framebuffer {
 *	@param[in]	font_idx						Index of the font in Zephyr's catalog
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
-*	@retval		CfbKerningSet					If an error occurs when setting the kerning to 0
+*	@retval		CfbFontKerningSet				If an error occurs when setting the kerning to 0
 *	@retval		ParamFontIndex					If font_idx is greater than or equal to the number of fonts available in Zephyr's catalog
 *	@retval		CfbFontSet						If an error occurs when setting the font to that at index font_idx
 *	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at index font_idx or if the obtained size is 0
 *	@retval		DisplayResolution				If the obtained size of the font is greater than the obtained size of the display
 *	@retval		Ok								If no error occurs
 *
-*	@pre		The required font has been set in prj.conf
+*	@pre		The required font is available from Zephyr's system
 *	@post		If the CFB is not ready to be used then error.code is set to CfbUnready
 *	@post		If font_idx is out of range then the font is not changed and it is still possible to use it
 *	@post		If an error with Zephyr's CFB API occurs then another call is required to use the font
-*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbKerningSet
+*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
 *	@post		If an error occurs when setting the font to that at index font_idx with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
 *	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
 *	@post		If the size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
