@@ -15,6 +15,7 @@
 #define MONOCHROME_DISPLAY_HPP
 
 #include "character_framebuffer.hpp"
+#include "character_framebuffer_fonts.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
@@ -30,6 +31,8 @@ namespace monochrome_display {
 		ParamPositionIndexes,
 		ParamStringLength
 	};
+
+	enum class FontName {FONT_NAME_INIT};
 
 	class MonochromeDisplay {
 
@@ -47,7 +50,7 @@ namespace monochrome_display {
 			MonochromeDisplay& operator=(const MonochromeDisplay&) = delete;
 			MonochromeDisplay& operator=(MonochromeDisplay&&) = delete;
 
-			monochrome_display::ErrorCode font_set(character_framebuffer::FontSizeIdx font_size);
+			monochrome_display::ErrorCode font_set(monochrome_display::FontName font_name);
 
 			monochrome_display::ErrorCode grid_clear();
 			monochrome_display::ErrorCode grid_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx);

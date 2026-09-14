@@ -12,8 +12,10 @@
 */
 
 #include "character_framebuffer.hpp"
+#include "character_framebuffer_fonts.hpp"
 #include <cstdint>
 #include <cstddef>
+#include <array>
 #include <string_view>
 #include <zephyr/device.h>
 #include <zephyr/display/cfb.h>
@@ -54,15 +56,10 @@ character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer
 
 }
 
-character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(std::uint8_t font_idx) {
+character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(character_framebuffer::FontName font_name) {
 
 	if (!this->system.cfb_ready) {
 		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
-		return this->error.code;
-	}
-
-	if (font_idx >= cfb_get_numof_fonts(this->display.device_ptr)) {
-		this->error = {character_framebuffer::ErrorCode::ParamFontIndex, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -81,7 +78,19 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 		this->system.kerning_ready = true;
 	}
 
-	this->error.return_value = cfb_framebuffer_set_font(this->display.device_ptr, font_idx);
+	for (std::size_t i = 0; i < this->font_list.size(); i++) {
+
+		if (font_name == this->font_list.at(i)) {
+			this->font.idx = i;
+		}
+	}
+
+	if (this->font.idx >= cfb_get_numof_fonts(this->display.device_ptr)) {
+		this->error = {character_framebuffer::ErrorCode::ParamFontIndex, 0, 0, 0};
+		return this->error.code;
+	}
+
+	this->error.return_value = cfb_framebuffer_set_font(this->display.device_ptr, this->font.idx);
 
 	if (this->error.return_value != 0) {
 		this->error.code = character_framebuffer::ErrorCode::CfbFontSet;
@@ -90,7 +99,6 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 		return this->error.code;
 	}
 
-	this->font.idx = font_idx;
 	this->error.return_value = cfb_get_font_size(this->display.device_ptr, this->font.idx, &(this->font.width_px), &(this->font.height_px));
 
 	if (this->error.return_value != 0) {
@@ -135,7 +143,7 @@ display{init_operations(monochrome_display_device_ptr)} {
 
 	this->system.kerning_ready = true;
 
-	if (this->font_set(0) != character_framebuffer::ErrorCode::Ok) {
+	if (this->font_set(DEFAULT_FONT) != character_framebuffer::ErrorCode::Ok) {
 		return;
 	}
 

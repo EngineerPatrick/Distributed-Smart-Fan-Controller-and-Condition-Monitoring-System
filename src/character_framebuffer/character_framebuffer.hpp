@@ -13,8 +13,10 @@
 #ifndef CHARACTER_FRAMEBUFFER_HPP
 #define CHARACTER_FRAMEBUFFER_HPP
 
+#include "character_framebuffer_fonts.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <array>
 #include <string_view>
 #include <zephyr/device.h>
 
@@ -45,11 +47,7 @@ namespace character_framebuffer {
 		std::size_t column_px = 0;
 	};
 
-	enum class FontSizeIdx {
-		Small = 0,
-		Medium = 1,
-		Large = 2
-	};
+	enum class FontName {FONT_NAME_INIT};
 
 	class CharacterFramebuffer {
 
@@ -68,7 +66,7 @@ namespace character_framebuffer {
 			CharacterFramebuffer& operator=(const CharacterFramebuffer&) = delete;
 			CharacterFramebuffer& operator=(CharacterFramebuffer&&) = delete;
 
-			character_framebuffer::ErrorCode font_set(std::uint8_t font_idx);
+			character_framebuffer::ErrorCode font_set(character_framebuffer::FontName font_name);
 
 			character_framebuffer::ErrorCode ram_clear();
 			character_framebuffer::ErrorCode ram_string_write(const std::string_view input_string, const std::size_t row_px, const std::size_t column_px);
@@ -102,6 +100,9 @@ namespace character_framebuffer {
 			character_framebuffer::ErrorState error;
 			character_framebuffer::CharacterFramebuffer::SystemState system;
 			character_framebuffer::CharacterFramebuffer::DisplayDevice display;
+
+			std::array<character_framebuffer::FontName, FONTS_NUMBER> font_list = {FONT_LIST_INIT};
+
 			character_framebuffer::CharacterFramebuffer::FontState font;
 
 			[[nodiscard("Internal error: necessary struct discarded")]] character_framebuffer::CharacterFramebuffer::DisplayDevice init_operations(const struct device* const monochrome_display_device_ptr);

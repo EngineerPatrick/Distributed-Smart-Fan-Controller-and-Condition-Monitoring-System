@@ -8,4 +8,5 @@ target_sources(app
 		TYPE HEADERS
 		FILES
 		character_framebuffer.hpp
+		character_framebuffer_fonts.hpp
 )
