@@ -105,7 +105,8 @@ namespace character_framebuffer {
 
 			character_framebuffer::CharacterFramebuffer::FontState font;
 
-			[[nodiscard("Internal error: necessary struct discarded")]] character_framebuffer::CharacterFramebuffer::DisplayDevice init_operations(const struct device* const monochrome_display_device_ptr);
+			[[nodiscard("Internal error: necessary struct discarded")]]
+			character_framebuffer::CharacterFramebuffer::DisplayDevice init_operations(const struct device* const monochrome_display_device_ptr);
 	};
 }
 
@@ -136,11 +137,33 @@ namespace character_framebuffer {
 
 /**
 *
+*	@enum		character_framebuffer::FontName
+*
+*	@brief		Name of all the available fonts
+*
+*	@warning	Due to Zephyr's own limitation the user is responsible for configuring this in production time as explained in character_framebuffer_fonts.hpp
+*
+*/
+
+/**
+*
 *	@class		character_framebuffer::CharacterFramebuffer
 *
 *	@brief		Class for Zephyr's Monochrome Character Framebuffer API
 *
 *	@warning	Since Zephyr currently supports only 1 character framebuffer there should be only 1 instance of this class
+*
+*/
+
+/**
+*
+*	@var		character_framebuffer::CharacterFramebuffer::font_list
+*
+*	@brief		List of the available fonts
+*
+*	@invariant	The index of each font in Zephyr's internal system is equal to the index of the font in this array
+*
+*	@warning	Due to Zephyr's own limitation the user is responsible for configuring this in production time as explained in character_framebuffer_fonts.hpp
 *
 */
 
@@ -177,29 +200,29 @@ namespace character_framebuffer {
 
 /**
 *
-*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(std::uint8_t font_idx)
+*	@fn			character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(character_framebuffer::FontName font_name)
 *
-*	@brief		Method to select the font from Zephyr's catalog
+*	@brief		Method to select the font from the configured list
 *
-*	@param[in]	font_idx						Index of the font in Zephyr's catalog
+*	@param[in]	font_name						Name of the font in the configured list
 *
 *	@retval		CfbUnready						If the CFB is not ready to be used
 *	@retval		CfbFontKerningSet				If an error occurs when setting the kerning to 0
-*	@retval		ParamFontIndex					If font_idx is greater than or equal to the number of fonts available in Zephyr's catalog
-*	@retval		CfbFontSet						If an error occurs when setting the font to that at index font_idx
-*	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at index font_idx or if the obtained size is 0
+*	@retval		ParamFontIndex					If the assigned font index is greater than or equal to the number of fonts available in Zephyr's catalog
+*	@retval		CfbFontSet						If an error occurs when setting the font to that at the specified index
+*	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at the specified index or if the obtained size is 0
 *	@retval		DisplayResolution				If the obtained size of the font is greater than the obtained size of the display
 *	@retval		Ok								If no error occurs
 *
 *	@pre		The required font is available from Zephyr's system
+*	@pre		The required font has been correctly configured in the font header
 *	@post		If the CFB is not ready to be used then error.code is set to CfbUnready
-*	@post		If font_idx is out of range then the font is not changed and it is still possible to use it
-*	@post		If an error with Zephyr's CFB API occurs then another call is required to use the font
+*	@post		If any error besides the CFB unready occurs then another call is required to use the font
 *	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
-*	@post		If an error occurs when setting the font to that at index font_idx with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
+*	@post		If an error occurs when setting the font to that at the specified index with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
 *	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
 *	@post		If the size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
-*	@post		On success the font is set to that at index font_idx and error.code is set to Ok
+*	@post		On success the font is set to that at the specified index and error.code is set to Ok
 *
 */
 
