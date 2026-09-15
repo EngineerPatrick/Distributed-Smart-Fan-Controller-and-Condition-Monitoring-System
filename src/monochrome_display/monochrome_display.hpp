@@ -105,6 +105,18 @@ namespace monochrome_display {
 
 /**
 *
+*	@enum		monochrome_display::FontName
+*
+*	@brief		Names of the available fonts
+*
+*	@details	This enum is a copy of the FontName enum in the character_framebuffer namespace to decouple the caller from the character framebuffer module
+*
+*	@warning	All original enum's warnings and invariants apply to this copy as well
+*
+*/
+
+/**
+*
 *	@class		monochrome_display::MonochromeDisplay
 *
 *	@brief		Class for a single monochrome display device
@@ -143,11 +155,11 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(monochrome_display::FontSize font_size)
+*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(monochrome_display::FontName font_name)
 *
-*	@brief		Method to set the size of the font to one of the available options
+*	@brief		Method to set the font to one of the available options
 *
-*	@param[in]	font_size						Option for the size of the font
+*	@param[in]	font_name						Name of the font to be set
 *
 *	@retval		MainUnready						If an error occurs in the initialization of the CFB
 *	@retval		TextUnready						If an error occurs when setting the font
