@@ -25,7 +25,7 @@ namespace monochrome_display {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		MainUnready,
+		DisplayUnready,
 		TextUnready,
 		CfbRam,
 		ParamPositionIndexes,
@@ -62,7 +62,7 @@ namespace monochrome_display {
 		private:
 
 			struct SystemState {
-				bool main_ready = false;
+				bool display_ready = false;
 				bool text_ready = false;
 			};
 
@@ -144,7 +144,7 @@ namespace monochrome_display {
 *	@param[in]	monochrome_display_device_ptr	Pointer to the device struct of the target display
 *
 *	@pre		monochrome_display_device_ptr points to a valid device struct of a monochrome display
-*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
+*	@post		If the display is not ready to be used then error is set to DisplayUnready
 *	@post		If an error occurs when obtaining the sizes of the display and of the font then error is set to TextUnready
 *	@post		On success the display is ready to be used, the font sizes are saved in font, the grid sizes are saved in grid and error is set to Ok
 *
@@ -161,12 +161,12 @@ namespace monochrome_display {
 *
 *	@param[in]	font_name						Name of the font to be set
 *
-*	@retval		MainUnready						If an error occurs in the initialization of the CFB
-*	@retval		TextUnready						If an error occurs when setting the font
+*	@retval		DisplayUnready					If the display is not ready to be used
+*	@retval		TextUnready						If the text functions are not ready to be used
 *	@retval		Ok								If no error occurs
 *
-*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
-*	@post		If an error occurs when setting the font then error is set to TextUnready and a new call is required to use the text
+*	@post		If the display is not ready to be used then error is set to DisplayUnready
+*	@post		If the text functions are not ready to be used then error is set to TextUnready and a new call is required to use the text
 *	@post		On success the font is set to the specified option, the new grid is computed and error is set to Ok
 *
 */
@@ -177,11 +177,11 @@ namespace monochrome_display {
 *
 *	@brief		Method to clear the grid
 *
-*	@retval		MainUnready						If an error occurs in the initialization of the CFB
+*	@retval		DisplayUnready					If the display is not ready to be used
 *	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
-*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
+*	@post		If the display is not ready to be used then error is set to DisplayUnready
 *	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success the grid is cleared and error is set to Ok
 *
@@ -218,11 +218,11 @@ namespace monochrome_display {
 *
 *	@brief		Method to print the grid on the display
 *
-*	@retval		MainUnready						If an error occurs in the initialization of the CFB
+*	@retval		DisplayUnready					If the display is not ready to be used
 *	@retval		CfbRam							If an error occurs with CFB's RAM
 *	@retval		Ok								If no error occurs
 *
-*	@post		If an error occurs in the initialization of the CFB then error is set to MainUnready
+*	@post		If the display is not ready to be used then error is set to DisplayUnready
 *	@post		If an error occurs with CFB's RAM then error is set to CfbRam
 *	@post		On success the grid is printed on the display and error is set to Ok
 *

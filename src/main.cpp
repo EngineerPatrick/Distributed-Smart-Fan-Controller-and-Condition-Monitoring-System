@@ -18,7 +18,7 @@
 
 #define DISPLAY0_ALIAS readings_display
 #define SENSOR0_ALIAS temp_sensor
-#define PWM_ALIAS fan_pwm
+#define FAN0_ALIAS fan_pwm
 
 DEFINE_TEMPERATURE_SENSOR(SENSOR0_ALIAS)
 
@@ -33,7 +33,7 @@ int main(void) {
 
 	static monochrome_display::MonochromeDisplay mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
 	static temperature_sensor::TemperatureSensor bme{TEMPERATURE_SENSOR_DEVICE(SENSOR0_ALIAS)};
-	static pwm::PwmDevice control_fan{PWM_DT_SPEC_GET(DT_ALIAS(PWM_ALIAS))};
+	static pwm::PwmSignal control_fan{PWM_DT_SPEC_GET(DT_ALIAS(FAN0_ALIAS))};
 
 	temperature_sensor_error_state = bme.error_state_get();
 

@@ -12,7 +12,6 @@
 */
 
 #include "temperature_sensor.hpp"
-#include <cmath>
 #include <zephyr/device.h>
 #include <zephyr/rtio/rtio.h>
 #include <zephyr/drivers/sensor.h>

@@ -39,11 +39,11 @@ display{init_operations()} {
 	character_framebuffer::ErrorState cfb_error_state{this->cfb.error_state_get()};
 
 	if (cfb_error_state.code != character_framebuffer::ErrorCode::Ok) {
-		this->error = monochrome_display::ErrorCode::MainUnready;
+		this->error = monochrome_display::ErrorCode::DisplayUnready;
 		return;
 	}
 
-	this->system.main_ready = true;
+	this->system.display_ready = true;
 
 	if (this->error == monochrome_display::ErrorCode::TextUnready) {
 		return;
@@ -61,8 +61,8 @@ display{init_operations()} {
 
 monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(monochrome_display::FontName font_name) {
 
-	if (!this->system.main_ready) {
-		this->error = monochrome_display::ErrorCode::MainUnready;
+	if (!this->system.display_ready) {
+		this->error = monochrome_display::ErrorCode::DisplayUnready;
 		return this->error;
 	}
 
@@ -86,8 +86,8 @@ monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(mo
 
 monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_clear() {
 
-	if (!this->system.main_ready) {
-		this->error = monochrome_display::ErrorCode::MainUnready;
+	if (!this->system.display_ready) {
+		this->error = monochrome_display::ErrorCode::DisplayUnready;
 		return this->error;
 	}
 
@@ -137,8 +137,8 @@ monochrome_display::ErrorCode string_blink(std::string_view input_string, std::s
 
 monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_print() {
 
-	if (!system.main_ready) {
-		this->error = monochrome_display::ErrorCode::MainUnready;
+	if (!system.display_ready) {
+		this->error = monochrome_display::ErrorCode::DisplayUnready;
 		return this->error;
 	}
 
