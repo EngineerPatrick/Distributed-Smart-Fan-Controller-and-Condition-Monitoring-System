@@ -50,7 +50,7 @@ character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer
 
 	character_framebuffer::CharacterFramebuffer::DisplayDevice display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
 
-	this->system.cfb_ready = true;
+	this->system.display_ready = true;
 	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
 	return display;
 
@@ -58,8 +58,8 @@ character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(character_framebuffer::FontName font_name) {
 
-	if (!this->system.cfb_ready) {
-		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
+	if (!this->system.display_ready) {
+		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -128,7 +128,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 character_framebuffer::CharacterFramebuffer::CharacterFramebuffer(const struct device* const monochrome_display_device_ptr) :
 display{init_operations(monochrome_display_device_ptr)} {
 
-	if (!this->system.cfb_ready) {
+	if (!this->system.display_ready) {
 		return;
 	}
 
@@ -159,8 +159,8 @@ character_framebuffer::CharacterFramebuffer::~CharacterFramebuffer() {
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(std::size_t& display_width_px, std::size_t& display_height_px) {
 
-	if (!this->system.cfb_ready) {
-		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
+	if (!this->system.display_ready) {
+		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -174,7 +174,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::di
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(std::size_t& font_width_px, std::size_t& font_height_px) {
 
 	if (!this->system.font_ready) {
-		this->error = {character_framebuffer::ErrorCode::CfbFontUnready, 0, 0, 0};
+		this->error = {character_framebuffer::ErrorCode::FontUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -187,8 +187,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_clear() {
 
-	if (!this->system.cfb_ready) {
-		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
+	if (!this->system.display_ready) {
+		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -209,7 +209,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 	char input_char[2] = {' ', '\0'};
 
 	if (!this->system.font_ready) {
-		this->error = {character_framebuffer::ErrorCode::CfbFontUnready, 0, 0, 0};
+		this->error = {character_framebuffer::ErrorCode::FontUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -244,8 +244,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_flush() {
 
-	if (!this->system.cfb_ready) {
-		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
+	if (!this->system.display_ready) {
+		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
 		return this->error.code;
 	}
 

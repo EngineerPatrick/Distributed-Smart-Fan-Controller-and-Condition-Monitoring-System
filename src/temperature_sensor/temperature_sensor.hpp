@@ -64,7 +64,7 @@ namespace temperature_sensor {
 
 			/*
 			*
-			*	Copy/move constructors/operators are deleted to prevent the creation of another instance of this class with the same SensorDevice values
+			*	Copy/move constructors/operators are deleted to prevent the creation of a copy of this class through these operations
 			*
 			*/
 			TemperatureSensor(const TemperatureSensor&) = delete;
@@ -138,7 +138,7 @@ namespace temperature_sensor {
 *
 *	@brief		Class for Zephyr's Sensor API
 *
-*	@warning	Each instance of this class must have different SensorDevice values because it must refer to a different device
+*	@warning	Since each instance of this class represents a different device there should not exist copies
 *
 */
 
