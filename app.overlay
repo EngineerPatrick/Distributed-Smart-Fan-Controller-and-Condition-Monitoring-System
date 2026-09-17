@@ -1,16 +1,23 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/pwm/pwm.h>
 
 / {
 	aliases {
 		error-led = &red_led;
 		readings-display = &display0;
 		temp-sensor = &sensor0;
+		fan-pwm = &fan0;
 	};
 
 	leds {
 		red_led: pd5_led {
 			gpios = <&gpiod 5 GPIO_ACTIVE_LOW>;
 		};
+	};
+
+	fan0: arctic_p12max {
+		compatible = "fan-pwm";
+		pwms = <&pwm_tim3 1 PWM_USEC(40) PWM_POLARITY_NORMAL>;
 	};
 };
 
@@ -38,4 +45,14 @@
 		reg = <0x76>;
 		status = "okay";
 	};
+};
+
+&timers3 {
+	status = "okay";
+
+		pwm_tim3: pwm {
+			status = "okay";
+			pinctrl-0 = <&tim3_ch1_pa6>;
+			pinctrl-names = "default";
+		}; 
 };
