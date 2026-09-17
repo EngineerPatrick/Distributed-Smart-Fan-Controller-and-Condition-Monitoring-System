@@ -1,0 +1,16 @@
+include: base.yaml
+
+description: |
+  4-wire PC case fan.
+
+compatible: "fan-pwm"
+
+properties:
+  pwms:
+    required: true
+    type: phandle-array
+    description: |
+      Reference to a PWM instance.
+
+      Includes the PWM channel, the waveform period and
+      the PWM polarity.
