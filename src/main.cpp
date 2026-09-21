@@ -8,6 +8,7 @@
 #include "display_ui.hpp"
 #include "temperature_sensor.hpp"
 #include "pwm.hpp"
+#include "input_capture.hpp"
 #include <cstdint>
 #include <zephyr/devicetree.h>
 #include <zephyr/device.h>
@@ -21,6 +22,7 @@
 #define FAN0_ALIAS fan_pwm
 
 DEFINE_TEMPERATURE_SENSOR(SENSOR0_ALIAS)
+DEFINE_INPUT_CAPTURE(FAN0_ALIAS)
 
 int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
@@ -34,6 +36,7 @@ int main(void) {
 	static monochrome_display::MonochromeDisplay mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
 	static temperature_sensor::TemperatureSensor bme{TEMPERATURE_SENSOR_DEVICE(SENSOR0_ALIAS)};
 	static pwm::PwmSignal control_fan{PWM_DT_SPEC_GET(DT_ALIAS(FAN0_ALIAS))};
+	static input_capture::InputCaptureSignal fan_tach{INPUT_CAPTURE_TIMER(FAN0_ALIAS)};
 
 	temperature_sensor_error_state = bme.error_state_get();
 

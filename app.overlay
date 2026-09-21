@@ -17,7 +17,9 @@
 
 	fan0: arctic_p12max {
 		compatible = "fan-pwm";
-		pwms = <&pwm_tim3 1 PWM_USEC(40) PWM_POLARITY_NORMAL>;
+		pwms = <&pwm3 1 PWM_USEC(40) PWM_POLARITY_NORMAL>,
+				<&pwm2 1 0 PWM_POLARITY_NORMAL>;
+		pwm-names = "control", "tachometer";
 	};
 };
 
@@ -50,7 +52,7 @@
 &timers3 {
 	status = "okay";
 
-		pwm_tim3: pwm {
+		pwm3: pwm {
 			status = "okay";
 			pinctrl-0 = <&tim3_ch1_pa6>;
 			pinctrl-names = "default";
