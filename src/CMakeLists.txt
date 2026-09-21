@@ -13,3 +13,5 @@ add_subdirectory(display_ui)
 add_subdirectory(temperature_sensor)
 
 add_subdirectory(pwm)
+
+add_subdirectory(input_capture)
