@@ -21,11 +21,13 @@ namespace display_ui {
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
 		DisplayOperation,
-		ParamTemp
+		ParamTemp,
+		ParamSpeed
 	};
 
 	display_ui::ErrorCode fixed_ui_print(monochrome_display::MonochromeDisplay& mc_obj);
 	display_ui::ErrorCode temp_value_print(monochrome_display::MonochromeDisplay& mc_obj, std::int16_t temp_c_x10);
+	display_ui::ErrorCode speed_value_print(monochrome_display::MonochromeDisplay& mc_obj, std::uint16_t speed_rpm);
 }
 
 #endif
@@ -72,5 +74,25 @@ namespace display_ui {
 *	@post		If the value of the temperature is out of range then RAM's content are left unchanged
 *	@post		If an error occurs whith the MonochromeDisplay class then changes are left on RAM's content
 *	@post		On success the temperature value is printed on the display
+*
+*/
+
+/**
+*
+*	@fn 		display_ui::ErrorCode speed_value_print(monochrome_display::MonochromeDisplay& mc_obj, std::uint16_t speed_rpm)
+*
+*	@brief		Prints the value of the tempearature reading on the display
+*
+*	@param[in]	mc_obj							Instance of the MonochromeDisplay class
+*	@param[in]	speed_rpm						Value of the speed reading in RPM
+*
+*	@retval		ParamSpeed						If the value of the speed is out of range
+*	@retval		DisplayOperation				If an error occurs whith the MonochromeDisplay class
+*	@retval		Ok								If no error occurs
+*
+*	@pre		mc_obj must be a valid instance of the MonochromeDisplay class correctly initialized
+*	@post		If the value of the speed is out of range then RAM's content are left unchanged
+*	@post		If an error occurs whith the MonochromeDisplay class then changes are left on RAM's content
+*	@post		On success the speed value is printed on the display
 *
 */
