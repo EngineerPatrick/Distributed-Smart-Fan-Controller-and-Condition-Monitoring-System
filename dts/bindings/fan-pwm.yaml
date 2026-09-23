@@ -14,7 +14,10 @@ properties:
       Includes the PWM channel, the waveform period and
       the PWM polarity.
 
-  pwm-names:
+  counter-captures:
     required: true
-    type: string-array
-    description: Names for different PWM instance references.
+    type: phandle-array
+    description: |
+      Reference to a counter instance.
+
+      Includes the counter channel and the capture edge.
