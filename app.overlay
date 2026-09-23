@@ -1,5 +1,6 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/pwm/pwm.h>
+#include <zephyr/dt-bindings/counter/counter-capture.h>
 
 / {
 	aliases {
@@ -17,9 +18,8 @@
 
 	fan0: arctic_p12max {
 		compatible = "fan-pwm";
-		pwms = <&pwm3 1 PWM_USEC(40) PWM_POLARITY_NORMAL>,
-				<&pwm2 1 0 PWM_POLARITY_NORMAL>;
-		pwm-names = "control", "tachometer";
+		pwms = <&pwm3 2 PWM_USEC(40) PWM_POLARITY_NORMAL>;
+		counter-captures = <&counter2 1 COUNTER_CAPTURE_RISING_EDGE>;
 	};
 };
 
@@ -49,12 +49,26 @@
 	};
 };
 
+&timers2 {
+
+	pwm {
+		status = "disabled";
+	};
+
+	counter2: counter {
+		#counter-capture-cells = <0x2>;
+		status = "okay";
+		pinctrl-0 = <&tim2_ch2_pa1>;
+		pinctrl-names = "default";
+	};
+};
+
 &timers3 {
 	status = "okay";
 
 		pwm3: pwm {
 			status = "okay";
-			pinctrl-0 = <&tim3_ch1_pa6>;
+			pinctrl-0 = <&tim3_ch2_pa7>;
 			pinctrl-names = "default";
 		}; 
 };
