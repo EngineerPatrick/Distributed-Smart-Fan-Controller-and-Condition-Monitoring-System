@@ -5,27 +5,24 @@
 #include <cstdint>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/device.h>
-#include <zephyr/drivers/pwm.h>
+#include <zephyr/drivers/counter.h>
 
-#define CONCAT_UNDRSCR(str1, str2) str1 ## _ ## str2
-
-#define DEFINE_INPUT_CAPTURE(alias) input_capture::TimerDevice CONCAT_UNDRSCR(input_capture_timer, alias){ \
-	{DEVICE_DT_GET(DT_PWMS_CTLR_BY_NAME(DT_ALIAS(alias), tachometer))}, \
-	{DT_PWMS_CHANNEL_BY_NAME(DT_ALIAS(alias), tachometer)}, \
-};
-
-#define INPUT_CAPTURE_TIMER(alias) CONCAT_UNDRSCR(input_capture_timer, alias)
+#define INPUT_CAPTURE_TIMER(alias) { \
+	DEVICE_DT_GET(DT_COUNTER_CAPTURES_CTLR_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
+	DT_COUNTER_CAPTURES_FLAGS_BY_IDX(DT_ALIAS(alias), counter_captures, 0), \
+	static_cast<uint8_t>(DT_COUNTER_CAPTURES_CHANNEL_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
+}
 
 namespace input_capture {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
 		DeviceUnready,
-		TimerUnready,
-		CaptureTimerFrequency,
-		CaptureStatus,
-		CaptureConfigure,
-		CaptureEnable
+		CaptureUnready,
+		NewUnavailable,
+		CounterCaptureConfigure,
+		CounterCaptureEnable,
+		CounterStart
 	};
 
 	struct ErrorState {
@@ -33,17 +30,11 @@ namespace input_capture {
 		int return_value = 0;
 	};
 
-	struct TimerDevice {
-		const struct device* const device_ptr = nullptr;
-		const std::uint32_t channel = 0;
-		const std::uint32_t period_ns = 0;
-	};
-
 	class InputCaptureSignal {
 
 		public:
 
-			InputCaptureSignal(const struct TimerDevice input_capture_timer);
+			InputCaptureSignal(const counter_capture_dt_spec input_capture_timer, const counter_capture_flags_t hardware-specific_flags);
 
 			/*
 			*
@@ -55,40 +46,34 @@ namespace input_capture {
 			InputCaptureSignal& operator=(const InputCaptureSignal&) = delete;
 			InputCaptureSignal& operator=(InputCaptureSignal&&) = delete;
 
-			input_capture::ErrorCode capture_period_ns_get(std::uint32_t& capture_period_ns);
+			input_capture::ErrorCode capture_period_us_get(std::uint32_t& capture_period_us);
 			[[nodiscard("Called error getter and discarded its return value")]] input_capture::ErrorState error_state_get() const;
-
 
 		private:
 
 			struct SystemState {
-				bool timer_ready = false;
 				bool capture_ready = false;
-				atomic_val_t capture_valid = 0;
+				atomic_val_t new_available = 0;
 			};
 
 			struct CaptureState {
-				atomic_val_t period_ns = ATOMIC_INIT(0);
-				atomic_val_t status = ATOMIC_INIT(0);
+				atomic_val_t current_timestamp_ticks = ATOMIC_INIT(0);
+				atomic_val_t previous_timestamp_ticks = ATOMIC_INIT(0);
 			};
+
+			const counter_capture_dt_spec timer = {};
 
 			input_capture::ErrorState error;
 			input_capture::InputCaptureSignal::SystemState system;
-			input_capture::TimerDevice timer;
-
 			input_capture::InputCaptureSignal::CaptureState capture;
-
-			std::uint32_t init_operations();
 
 			static void capture_callback(
 				const struct device* const timer_device_ptr,
-				const std::uint32_t timer_channel,
-				const std::uint32_t period_cycles_hz,
-				const std::uint32_t pulse_cycles_hz,
-				const int capture_status,
+				const std::uint8_t timer_channel,
+				counter_capture_flags_t timer_flags,
+				const std::uint32_t timer_timestamp_ticks,
 				void* input_capture_signal
 			);
-
 	};
 }
 
