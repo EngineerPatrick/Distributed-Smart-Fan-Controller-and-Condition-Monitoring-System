@@ -8,7 +8,8 @@
 #include "display_ui.hpp"
 #include "temperature_sensor.hpp"
 #include "pwm.hpp"
-#include "input_capture.hpp"
+#include "counter_capture.hpp"
+#include "input_capture_service.hpp"
 #include <cstdint>
 #include <zephyr/devicetree.h>
 #include <zephyr/device.h>
@@ -23,7 +24,7 @@
 #define SENSOR0_ALIAS temp_sensor
 #define FAN0_ALIAS fan_pwm
 
-#define INPUT_CAPTURE_ADDITIONAL_FLAGS (COUNTER_CAPTURE_STM32_PRESCALER_DIV1 | COUNTER_CAPTURE_STM32_FILTER_DTS_DIV2_N6)
+#define COUNTER_CAPTURE_ADDITIONAL_FLAGS (COUNTER_CAPTURE_STM32_PRESCALER_DIV1 | COUNTER_CAPTURE_STM32_FILTER_DTS_DIV2_N6)
 
 DEFINE_TEMPERATURE_SENSOR(SENSOR0_ALIAS)
 
@@ -58,9 +59,9 @@ int main(void) {
 		while (1) {}
 	}
 
-	static input_capture::InputCaptureSignal fan_tach{INPUT_CAPTURE_TIMER(FAN0_ALIAS), INPUT_CAPTURE_ADDITIONAL_FLAGS};
+	static input_capture_service::InputCaptureSignal fan_tach{COUNTER_CAPTURE_TIMER(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
 
-	if (fan_tach.error_state_get().code != input_capture::ErrorCode::Ok) {
+	if (fan_tach.error_get() != input_capture_service::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -78,7 +79,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	std::uint32_t capture_period_us = 0;
+	std::uint64_t fan_tach_period_ns = 0;
 
 	while (1) {
 
@@ -88,13 +89,13 @@ int main(void) {
 			while (1) {}
 		}
 
-		if (fan_tach.capture_period_us_get(capture_period_us) != input_capture::ErrorCode::Ok) {
+		if (fan_tach.period_ns_get(fan_tach_period_ns) != input_capture_service::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
 		}
 
-		speed_rpm = static_cast<std::uint16_t>(60000000U / (static_cast<std::uint64_t>(capture_period_us) * 2));
+		speed_rpm = static_cast<std::uint16_t>(60000000000ULL / (fan_tach_period_ns * 2));
 
 		if (display_ui::temp_value_print(mc0, (temp_c_x100 / 10)) != display_ui::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
