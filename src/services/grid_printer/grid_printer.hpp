@@ -1,8 +1,8 @@
 /**
 *
-*	@file		monochrome_display.hpp
+*	@file		grid_printer.hpp
 *
-*	@brief		Public API for the monochrome_display module
+*	@brief		Public API for the grid_printer.module
 *
 *	@details	Monochrome display service to manage a single device
 *				by using the character framebuffer
@@ -11,8 +11,8 @@
 *
 */
 
-#ifndef MONOCHROME_DISPLAY_HPP
-#define MONOCHROME_DISPLAY_HPP
+#ifndef GRID_PRINTER_HPP
+#define GRID_PRINTER_HPP
 
 #include "character_framebuffer.hpp"
 #include "character_framebuffer_fonts.hpp"
@@ -21,7 +21,7 @@
 #include <string_view>
 #include <zephyr/device.h>
 
-namespace monochrome_display {
+namespace grid_printer {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
@@ -39,30 +39,30 @@ namespace monochrome_display {
 
 	enum class FontName {FONT_NAME_INIT};
 
-	class MonochromeDisplay {
+	class GridPrinter {
 
 		public:
 
-			explicit MonochromeDisplay(const struct device* const monochrome_display_device_ptr);
+			explicit GridPrinter(const struct device* const monochrome_display_device_ptr);
 
 			/*
 			*
 			*	Copy/move constructors/operators are deleted to prevent the creation of another instance of this class through these operations
 			*
 			*/
-			MonochromeDisplay(const MonochromeDisplay&) = delete;
-			MonochromeDisplay(MonochromeDisplay&&) = delete;
-			MonochromeDisplay& operator=(const MonochromeDisplay&) = delete;
-			MonochromeDisplay& operator=(MonochromeDisplay&&) = delete;
+			GridPrinter(const GridPrinter&) = delete;
+			GridPrinter(GridPrinter&&) = delete;
+			GridPrinter& operator=(const GridPrinter&) = delete;
+			GridPrinter& operator=(GridPrinter&&) = delete;
 
-			monochrome_display::ErrorCode font_set(monochrome_display::FontName font_name);
+			grid_printer::ErrorCode font_set(grid_printer::FontName font_name);
 
-			monochrome_display::ErrorCode grid_clear();
-			monochrome_display::ErrorCode grid_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx);
-//			monochrome_display::ErrorCode string_blink();
-			monochrome_display::ErrorCode grid_print();
+			grid_printer::ErrorCode cells_clear();
+			grid_printer::ErrorCode cells_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx);
+//			grid_printer::ErrorCode string_blink();
+			grid_printer::ErrorCode cells_print();
 
-			[[nodiscard("Called error getter and discarded its return value")]] monochrome_display::ErrorCode error_get() const;
+			[[nodiscard("Called error getter and discarded its return value")]] grid_printer::ErrorCode error_get() const;
 
 		private:
 
@@ -76,7 +76,7 @@ namespace monochrome_display {
 				std::size_t height_px = 0;
 			};
 
-			struct DisplayGrid {
+			struct GridState {
 				std::size_t width_cells = 0;
 				std::size_t height_cells = 0;
 			};
@@ -84,17 +84,17 @@ namespace monochrome_display {
 			struct DisplayState {
 				const std::size_t width_px = 0;
 				const std::size_t height_px = 0;
-				monochrome_display::MonochromeDisplay::DisplayGrid grid;
 			};
 
-			monochrome_display::MonochromeDisplay::SystemState system;
+			grid_printer::GridPrinter::SystemState system;
 			character_framebuffer::CharacterFramebuffer cfb;
 
-			monochrome_display::ErrorCode error = monochrome_display::ErrorCode::Ok;
-			monochrome_display::MonochromeDisplay::DisplayState display;
-			monochrome_display::MonochromeDisplay::FontState font;
+			grid_printer::ErrorCode error = grid_printer::ErrorCode::Ok;
+			grid_printer::GridPrinter::GridState grid;
+			grid_printer::GridPrinter::DisplayState display;
+			grid_printer::GridPrinter::FontState font;
 
-			[[nodiscard("Internal error: necessary struct discarded")]] monochrome_display::MonochromeDisplay::DisplayState init_operations();
+			[[nodiscard("Internal error: necessary struct discarded")]] grid_printer::GridPrinter::DisplayState init_operations();
 	};
 }
 
@@ -102,7 +102,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@enum		monochrome_display::ErrorCode
+*	@enum		grid_printer::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -110,7 +110,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@enum		monochrome_display::FontName
+*	@enum		grid_printer::FontName
 *
 *	@brief		Names of the available fonts
 *
@@ -122,7 +122,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@class		monochrome_display::MonochromeDisplay
+*	@class		grid_printer::GridPrinter
 *
 *	@brief		Class for a single monochrome display device
 *
@@ -132,7 +132,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@var		monochrome_display::MonochromeDisplay::error
+*	@var		grid_printer::GridPrinter::error
 *
 *	@brief		Class error reporting variable
 *
@@ -142,7 +142,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::MonochromeDisplay::MonochromeDisplay(const struct device* const monochrome_display_device_ptr)
+*	@fn			grid_printer::GridPrinter::GridPrinter(const struct device* const monochrome_display_device_ptr)
 *
 *	@brief		Constructor to initialize the character framebuffer and the grid
 *
@@ -160,7 +160,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::font_set(monochrome_display::FontName font_name)
+*	@fn			grid_printer::ErrorCode grid_printer::GridPrinter::font_set(grid_printer::FontName font_name)
 *
 *	@brief		Method to set the font to one of the available options
 *
@@ -178,7 +178,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_clear()
+*	@fn			grid_printer::ErrorCode grid_printer::GridPrinter::cells_clear()
 *
 *	@brief		Method to clear the grid
 *
@@ -194,7 +194,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx)
+*	@fn			grid_printer::ErrorCode grid_printer::GridPrinter::cells_string_write(std::string_view input_string, std::size_t row_idx, std::size_t column_idx)
 *
 *	@brief		Method to write a string at a specific position of the grid
 *
@@ -219,7 +219,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::grid_print()
+*	@fn			grid_printer::ErrorCode grid_printer::ErrorCode grid_printer::GridPrinter::cells_print()
 *
 *	@brief		Method to print the grid on the display
 *
@@ -235,7 +235,7 @@ namespace monochrome_display {
 
 /**
 *
-*	@fn			monochrome_display::ErrorCode monochrome_display::MonochromeDisplay::error_get() const
+*	@fn			grid_printer::ErrorCode grid_printer::GridPrinter::error_get() const
 *
 *	@return		The error variable
 *

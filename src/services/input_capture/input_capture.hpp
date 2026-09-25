@@ -1,11 +1,11 @@
-#ifndef INPUT_CAPTURE_SERVICE_HPP
-#define INPUT_CAPTURE_SERVICE_HPP
+#ifndef INPUT_CAPTURE_HPP
+#define INPUT_CAPTURE_HPP
 
 #include "counter_capture.hpp"
 #include "atomic_operations.hpp"
 #include <cstdint>
 
-namespace input_capture_service {
+namespace input_capture {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
@@ -31,8 +31,8 @@ namespace input_capture_service {
 			InputCaptureSignal& operator=(const InputCaptureSignal&) = delete;
 			InputCaptureSignal& operator=(InputCaptureSignal&&) = delete;
 
-			input_capture_service::ErrorCode period_ns_get(std::uint64_t& signal_period_ns);
-			[[nodiscard("Called error getter and discarded its return value")]] input_capture_service::ErrorCode error_get() const;
+			input_capture::ErrorCode period_ns_get(std::uint64_t& signal_period_ns);
+			[[nodiscard("Called error getter and discarded its return value")]] input_capture::ErrorCode error_get() const;
 
 		private:
 
@@ -52,10 +52,10 @@ namespace input_capture_service {
 				atomic_operations::atomic32_t new_reading;
 			};
 
-			input_capture_service::InputCaptureSignal::CounterDevice counter;
-			input_capture_service::InputCaptureSignal::InputSignalState input_signal;
-			input_capture_service::InputCaptureSignal::SystemState system;
-			input_capture_service::ErrorCode error;
+			input_capture::InputCaptureSignal::CounterDevice counter;
+			input_capture::InputCaptureSignal::InputSignalState input_signal;
+			input_capture::InputCaptureSignal::SystemState system;
+			input_capture::ErrorCode error;
 
 			static void capture_callback(void* context_ptr, const std::uint32_t current_timestamp_ticks);
 	};
