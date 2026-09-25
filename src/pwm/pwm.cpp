@@ -32,7 +32,7 @@ dt_spec{pwm_dt_spec} {
 pwm::ErrorCode pwm::PwmSignal::start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns) {
 
 	if (!this->system.pwm_ready) {
-		this->error = {pwm::ErrorCode::DeviceUnready, 0};
+		this->error = {pwm::ErrorCode::PwmUnready, 0};
 		return this->error.code;
 	}
 
@@ -44,12 +44,12 @@ pwm::ErrorCode pwm::PwmSignal::start(std::size_t waveform_period_ns, std::size_t
 	this->error.return_value = pwm_set_dt(&(this->dt_spec), waveform_period_ns, waveform_pulse_width_ns);
 
 	if (this->error.return_value != 0) {
-		this->error.code = pwm::ErrorCode::PwmSet;
+		this->error.code = pwm::ErrorCode::ZPwmSet;
 		return this->error.code;
 	}
 
 	this->waveform = {waveform_period_ns, waveform_pulse_width_ns, static_cast<uint8_t>((waveform_pulse_width_ns * 100) / waveform_period_ns)};
-	this->system.params_set = true;
+	this->system.waveform_ready = true;
 	this->error = {pwm::ErrorCode::Ok, 0};
 	return this->error.code;
 }
@@ -58,7 +58,7 @@ pwm::ErrorCode pwm::PwmSignal::stop() {
 	this->error.return_value = pwm_set_pulse_dt(&(this->dt_spec), 0);
 
 	if (this->error.return_value != 0) {
-		this->error.code = pwm::ErrorCode::PwmSet;
+		this->error.code = pwm::ErrorCode::ZPwmSet;
 		return this->error.code;
 	}
 
@@ -70,8 +70,8 @@ pwm::ErrorCode pwm::PwmSignal::stop() {
 
 pwm::ErrorCode pwm::PwmSignal::waveform_params_get(std::size_t& waveform_period_ns, std::size_t& waveform_pulse_width_ns, std::size_t& waveform_duty_cycle_x100) {
 
-	if (!this->system.params_set) {
-		this->error = {pwm::ErrorCode::WaveformNotSet, 0};
+	if (!this->system.waveform_ready) {
+		this->error = {pwm::ErrorCode::WavefornUnready, 0};
 		return this->error.code;
 	}
 

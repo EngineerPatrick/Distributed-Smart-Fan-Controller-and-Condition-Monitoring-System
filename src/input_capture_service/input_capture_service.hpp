@@ -9,8 +9,8 @@ namespace input_capture_service {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		TimerUnready,
-		TimerStart,
+		CounterUnready,
+		CounterStart,
 		CaptureUnready,
 		NewUnavailable
 	};
@@ -19,7 +19,7 @@ namespace input_capture_service {
 
 		public:
 
-			InputCaptureSignal(const counter_capture_dt_spec counter_capture_timer, const counter_capture_flags_t additional_flags);
+			InputCaptureSignal(const counter_capture_dt_spec counter_capture_counter, const counter_capture_flags_t additional_flags);
 
 			/*
 			*
@@ -36,8 +36,8 @@ namespace input_capture_service {
 
 		private:
 
-			struct TimerDevice {
-				counter_capture::CounterCapture counter;
+			struct CounterDevice {
+				counter_capture::CounterCapture capture;
 				const std::uint32_t resolution_ticks = 0;
 			};
 
@@ -52,7 +52,7 @@ namespace input_capture_service {
 				atomic_operations::atomic32_t new_reading;
 			};
 
-			input_capture_service::InputCaptureSignal::TimerDevice timer;
+			input_capture_service::InputCaptureSignal::CounterDevice counter;
 			input_capture_service::InputCaptureSignal::InputSignalState input_signal;
 			input_capture_service::InputCaptureSignal::SystemState system;
 			input_capture_service::ErrorCode error;
