@@ -72,13 +72,13 @@ temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(s
 	*
 	*/
 	if (this->temp.internal_data.shift >= 0) {
-		this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) *
-		100 << this->temp.internal_data.shift) >> 31);
+		this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) * 100
+		<< this->temp.internal_data.shift) >> 31);
 	}
 
 	else {
 		this->temp.value_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->temp.internal_data.readings[0].temperature) * 100)
-		>> (31 + this->temp.internal_data.shift));
+		>> (31 + (-this->temp.internal_data.shift)));
 	}
 
 	temp_c_x100 = this->temp.value_c_x100;
