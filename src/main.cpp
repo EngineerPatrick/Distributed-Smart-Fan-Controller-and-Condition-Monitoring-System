@@ -4,12 +4,12 @@
 *
 */
 
-#include "monochrome_display.hpp"
+#include "grid_printer.hpp"
 #include "display_ui.hpp"
 #include "temperature_sensor.hpp"
 #include "pwm.hpp"
 #include "counter_capture.hpp"
-#include "input_capture_service.hpp"
+#include "input_capture.hpp"
 #include <cstdint>
 #include <zephyr/devicetree.h>
 #include <zephyr/device.h>
@@ -35,9 +35,9 @@ int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
 	gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_ACTIVE);
 
-	static monochrome_display::MonochromeDisplay mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
+	static grid_printer::GridPrinter mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
 
-	if (mc0.error_get() != monochrome_display::ErrorCode::Ok) {
+	if (mc0.error_get() != grid_printer::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -59,9 +59,9 @@ int main(void) {
 		while (1) {}
 	}
 
-	static input_capture_service::InputCaptureSignal fan_tach{COUNTER_CAPTURE_TIMER(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
+	static input_capture::InputCaptureSignal fan_tach{COUNTER_CAPTURE_TIMER(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
 
-	if (fan_tach.error_get() != input_capture_service::ErrorCode::Ok) {
+	if (fan_tach.error_get() != input_capture::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -89,7 +89,7 @@ int main(void) {
 			while (1) {}
 		}
 
-		if (fan_tach.period_ns_get(fan_tach_period_ns) != input_capture_service::ErrorCode::Ok) {
+		if (fan_tach.period_ns_get(fan_tach_period_ns) != input_capture::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}

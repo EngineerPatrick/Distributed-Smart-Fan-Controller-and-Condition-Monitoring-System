@@ -1,10 +1,10 @@
-#include "input_capture_service.hpp"
+#include "input_capture.hpp"
 #include "counter_capture.hpp"
 #include "atomic_operations.hpp"
 #include <cstdint>
 
-void input_capture_service::InputCaptureSignal::capture_callback(void* context_ptr, const std::uint32_t current_timestamp_ticks) {
-	input_capture_service::InputCaptureSignal* this_signal_ptr = static_cast<input_capture_service::InputCaptureSignal*>(context_ptr);
+void input_capture::InputCaptureSignal::capture_callback(void* context_ptr, const std::uint32_t current_timestamp_ticks) {
+	input_capture::InputCaptureSignal* this_signal_ptr = static_cast<input_capture::InputCaptureSignal*>(context_ptr);
 
 	if (this_signal_ptr->system.storage_ready) {
 		return;
@@ -20,37 +20,37 @@ void input_capture_service::InputCaptureSignal::capture_callback(void* context_p
 	atomic_operations::atomic_var_set(&(this_signal_ptr->system.new_reading), 1);
 }
 
-input_capture_service::InputCaptureSignal::InputCaptureSignal(const counter_capture_dt_spec counter_capture_counter, const counter_capture_flags_t additional_flags) :
+input_capture::InputCaptureSignal::InputCaptureSignal(const counter_capture_dt_spec counter_capture_counter, const counter_capture_flags_t additional_flags) :
 counter{
-	counter_capture::CounterCapture{counter_capture_counter, additional_flags, input_capture_service::InputCaptureSignal::capture_callback, this},
+	counter_capture::CounterCapture{counter_capture_counter, additional_flags, input_capture::InputCaptureSignal::capture_callback, this},
 	this->counter.capture.timer_resolution_ticks_get()
 } {
 
 	if (this->counter.capture.error_state_get().code != counter_capture::ErrorCode::Ok) {
-		this->error = input_capture_service::ErrorCode::CounterUnready;
+		this->error = input_capture::ErrorCode::CounterUnready;
 		return;
 	}
 
 	if (this->counter.capture.start() != counter_capture::ErrorCode::Ok) {
-		this->error = input_capture_service::ErrorCode::CounterStart;
+		this->error = input_capture::ErrorCode::CounterStart;
 		return;
 	}
 
 	this->system.capture_ready = true;
-	this->error = input_capture_service::ErrorCode::Ok;
+	this->error = input_capture::ErrorCode::Ok;
 }
 
-input_capture_service::ErrorCode input_capture_service::InputCaptureSignal::period_ns_get(std::uint64_t& signal_period_ns) {
+input_capture::ErrorCode input_capture::InputCaptureSignal::period_ns_get(std::uint64_t& signal_period_ns) {
 	std::uint32_t current_timestamp_ticks = 0;
 	std::uint32_t previous_timestamp_ticks = 0;
 
 	if (!this->system.capture_ready) {
-		this->error = input_capture_service::ErrorCode::CaptureUnready;
+		this->error = input_capture::ErrorCode::CaptureUnready;
 		return this->error;
 	}
 
 	if (!atomic_operations::atomic_var_get(&(this->system.new_reading))) {
-		this->error = input_capture_service::ErrorCode::NewUnavailable;
+		this->error = input_capture::ErrorCode::NewUnavailable;
 		return this->error;
 	}
 
@@ -69,10 +69,10 @@ input_capture_service::ErrorCode input_capture_service::InputCaptureSignal::peri
 
 	atomic_operations::atomic_var_set(&(this->system.new_reading), 0);
 	this->system.storage_ready = false;
-	this->error = input_capture_service::ErrorCode::Ok;
+	this->error = input_capture::ErrorCode::Ok;
 	return this->error;
 }
 
-input_capture_service::ErrorCode input_capture_service::InputCaptureSignal::error_get() const {
+input_capture::ErrorCode input_capture::InputCaptureSignal::error_get() const {
 	return this->error;
 }
