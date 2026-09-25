@@ -20,7 +20,9 @@ namespace display_ui {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DisplayOperation,
+		DisplayClear,
+		DisplayStringLoad,
+		DisplayPrint,
 		ParamTemp,
 		ParamSpeed
 	};

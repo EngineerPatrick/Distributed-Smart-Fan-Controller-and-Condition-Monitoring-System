@@ -28,7 +28,7 @@ const struct sensor_decoder_api* const temperature_sensor::TemperatureSensor::in
 	this->error.return_value = sensor_get_decoder(temperature_sensor_device_ptr, &decoder);
 
 	if (this->error.return_value != 0) {
-		this->error.code = temperature_sensor::ErrorCode::SensorDecoderGet;
+		this->error.code = temperature_sensor::ErrorCode::ZSensorDecoderGet;
 		return nullptr;
 	}
 
@@ -55,14 +55,14 @@ temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(s
 	this->error.return_value = sensor_read(this->sensor.iodev_ptr, this->sensor.ctx_ptr, rx_buff, 128);
 
 	if (this->error.return_value != 0) {
-		this->error.code = temperature_sensor::ErrorCode::SensorRead;
+		this->error.code = temperature_sensor::ErrorCode::ZSensorRead;
 		return this->error.code;
 	}
 
 	this->error.return_value = this->sensor.decoder->decode(rx_buff, (struct sensor_chan_spec) {SENSOR_CHAN_AMBIENT_TEMP, 0}, &fit, 1, &(this->temp.internal_data));
 
 	if (this->error.return_value < 1) {
-		this->error.code = temperature_sensor::ErrorCode::SensorDecode;
+		this->error.code = temperature_sensor::ErrorCode::ZSensorDecode;
 		return this->error.code;
 	}
 

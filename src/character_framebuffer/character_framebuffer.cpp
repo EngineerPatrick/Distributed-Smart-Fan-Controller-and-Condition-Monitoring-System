@@ -32,7 +32,7 @@ character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer
 	this->error.return_value = cfb_framebuffer_init(monochrome_display_device_ptr);
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbInit;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbInit;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return {};
@@ -50,7 +50,7 @@ character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer
 
 	character_framebuffer::CharacterFramebuffer::DisplayDevice display{{monochrome_display_device_ptr}, {display_width_px}, {display_height_px}};
 
-	this->system.display_ready = true;
+	this->system.cfb_ready = true;
 	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
 	return display;
 
@@ -58,18 +58,18 @@ character_framebuffer::CharacterFramebuffer::DisplayDevice character_framebuffer
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_set(character_framebuffer::FontName font_name) {
 
-	if (!this->system.display_ready) {
-		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
+	if (!this->system.cfb_ready) {
+		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
-	this->system.font_ready = false;
+	this->system.text_ready = false;
 
 	if(!this->system.kerning_ready) {
 		this->error.return_value = cfb_set_kerning(this->display.device_ptr, 0);
 
 		if (this->error.return_value != 0) {
-			this->error.code = character_framebuffer::ErrorCode::CfbFontKerningSet;
+			this->error.code = character_framebuffer::ErrorCode::ZCfbFontKerningSet;
 			this->error.row_px = 0;
 			this->error.column_px = 0;
 			return this->error.code;
@@ -93,7 +93,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 	this->error.return_value = cfb_framebuffer_set_font(this->display.device_ptr, this->font.idx);
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbFontSet;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbFontSet;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return this->error.code;
@@ -102,14 +102,14 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 	this->error.return_value = cfb_get_font_size(this->display.device_ptr, this->font.idx, &(this->font.width_px), &(this->font.height_px));
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbFontSizeGet;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return this->error.code;
 	}
 
 	if (!this->font.width_px || !this->font.height_px) {
-		this->error.code = character_framebuffer::ErrorCode::CfbFontSizeGet;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbFontSizeGet;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return this->error.code;
@@ -120,7 +120,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 		return this->error.code;
 	}
 
-	this->system.font_ready = true;
+	this->system.text_ready = true;
 	this->error = {character_framebuffer::ErrorCode::Ok, 0, 0, 0};
 	return this->error.code;
 }
@@ -128,14 +128,14 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 character_framebuffer::CharacterFramebuffer::CharacterFramebuffer(const struct device* const monochrome_display_device_ptr) :
 display{init_operations(monochrome_display_device_ptr)} {
 
-	if (!this->system.display_ready) {
+	if (!this->system.cfb_ready) {
 		return;
 	}
 
 	this->error.return_value = cfb_set_kerning(this->display.device_ptr, 0);
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbFontKerningSet;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbFontKerningSet;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return;
@@ -159,8 +159,8 @@ character_framebuffer::CharacterFramebuffer::~CharacterFramebuffer() {
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::display_sizes_get(std::size_t& display_width_px, std::size_t& display_height_px) {
 
-	if (!this->system.display_ready) {
-		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
+	if (!this->system.cfb_ready) {
+		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -173,8 +173,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::di
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::font_sizes_get(std::size_t& font_width_px, std::size_t& font_height_px) {
 
-	if (!this->system.font_ready) {
-		this->error = {character_framebuffer::ErrorCode::FontUnready, 0, 0, 0};
+	if (!this->system.text_ready) {
+		this->error = {character_framebuffer::ErrorCode::TextUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -187,15 +187,15 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::fo
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_clear() {
 
-	if (!this->system.display_ready) {
-		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
+	if (!this->system.cfb_ready) {
+		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
 	this->error.return_value = cfb_framebuffer_clear(this->display.device_ptr, false);
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbRamClear;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbRamClear;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return this->error.code;
@@ -208,8 +208,8 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_string_write(std::string_view input_string, const std::size_t row_px, const std::size_t column_px) {
 	char input_char[2] = {' ', '\0'};
 
-	if (!this->system.font_ready) {
-		this->error = {character_framebuffer::ErrorCode::FontUnready, 0, 0, 0};
+	if (!this->system.text_ready) {
+		this->error = {character_framebuffer::ErrorCode::TextUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
@@ -231,7 +231,7 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 		static_cast<int16_t>(row_px));
 
 		if (this->error.return_value != 0) {
-			this->error.code = character_framebuffer::ErrorCode::CfbStringWrite;
+			this->error.code = character_framebuffer::ErrorCode::ZCfbStringWrite;
 			this->error.row_px = row_px;
 			this->error.column_px = column_px + (this->font.width_px * i);
 			return this->error.code;
@@ -244,15 +244,15 @@ character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ra
 
 character_framebuffer::ErrorCode character_framebuffer::CharacterFramebuffer::ram_flush() {
 
-	if (!this->system.display_ready) {
-		this->error = {character_framebuffer::ErrorCode::DisplayUnready, 0, 0, 0};
+	if (!this->system.cfb_ready) {
+		this->error = {character_framebuffer::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
 	this->error.return_value = cfb_framebuffer_finalize(this->display.device_ptr);
 
 	if (this->error.return_value != 0) {
-		this->error.code = character_framebuffer::ErrorCode::CfbRamFlush;
+		this->error.code = character_framebuffer::ErrorCode::ZCfbRamFlush;
 		this->error.row_px = 0;
 		this->error.column_px = 0;
 		return this->error.code;
