@@ -25,9 +25,14 @@ namespace monochrome_display {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DisplayUnready,
 		TextUnready,
-		CfbRam,
+		CfbUnready,
+		CfbDisplaySizes,
+		CfbFontSet,
+		CfbFontSizesGet,
+		CfbRamClear,
+		CfbRamStringWrite,
+		CfbRamFlush,
 		ParamPositionIndexes,
 		ParamStringLength
 	};
@@ -62,7 +67,7 @@ namespace monochrome_display {
 		private:
 
 			struct SystemState {
-				bool display_ready = false;
+				bool cfb_ready = false;
 				bool text_ready = false;
 			};
 

@@ -20,19 +20,19 @@ void input_capture_service::InputCaptureSignal::capture_callback(void* context_p
 	atomic_operations::atomic_var_set(&(this_signal_ptr->system.new_reading), 1);
 }
 
-input_capture_service::InputCaptureSignal::InputCaptureSignal(const counter_capture_dt_spec counter_capture_timer, const counter_capture_flags_t additional_flags) :
-timer{
-	counter_capture::CounterCapture{counter_capture_timer, additional_flags, input_capture_service::InputCaptureSignal::capture_callback, this},
-	this->timer.counter.timer_resolution_ticks_get()
+input_capture_service::InputCaptureSignal::InputCaptureSignal(const counter_capture_dt_spec counter_capture_counter, const counter_capture_flags_t additional_flags) :
+counter{
+	counter_capture::CounterCapture{counter_capture_counter, additional_flags, input_capture_service::InputCaptureSignal::capture_callback, this},
+	this->counter.capture.timer_resolution_ticks_get()
 } {
 
-	if (this->timer.counter.error_state_get().code != counter_capture::ErrorCode::Ok) {
-		this->error = input_capture_service::ErrorCode::TimerUnready;
+	if (this->counter.capture.error_state_get().code != counter_capture::ErrorCode::Ok) {
+		this->error = input_capture_service::ErrorCode::CounterUnready;
 		return;
 	}
 
-	if (this->timer.counter.start() != counter_capture::ErrorCode::Ok) {
-		this->error = input_capture_service::ErrorCode::TimerStart;
+	if (this->counter.capture.start() != counter_capture::ErrorCode::Ok) {
+		this->error = input_capture_service::ErrorCode::CounterStart;
 		return;
 	}
 
@@ -60,11 +60,11 @@ input_capture_service::ErrorCode input_capture_service::InputCaptureSignal::peri
 	previous_timestamp_ticks = atomic_operations::atomic_var_get(&(this->input_signal.previous_timestamp_ticks));
 
 	if (current_timestamp_ticks >= previous_timestamp_ticks) {
-		signal_period_ns = this->timer.counter.timestamp_ticks_to_ns((current_timestamp_ticks - previous_timestamp_ticks));
+		signal_period_ns = this->counter.capture.timestamp_ticks_to_ns((current_timestamp_ticks - previous_timestamp_ticks));
 	}
 
 	else {
-		signal_period_ns = this->timer.counter.timestamp_ticks_to_ns((current_timestamp_ticks + (this->timer.resolution_ticks - previous_timestamp_ticks)));
+		signal_period_ns = this->counter.capture.timestamp_ticks_to_ns((current_timestamp_ticks + (this->counter.resolution_ticks - previous_timestamp_ticks)));
 	}
 
 	atomic_operations::atomic_var_set(&(this->system.new_reading), 0);

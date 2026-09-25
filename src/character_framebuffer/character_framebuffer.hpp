@@ -25,19 +25,19 @@ namespace character_framebuffer {
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
 		DeviceUnready,
-		DisplayUnready,
-		FontUnready,
+		CfbUnready,
+		TextUnready,
 		DisplayResolution,
 		ParamPixelCoordinates,
 		ParamStringLength,
 		ParamFontIndex,
-		CfbInit,
-		CfbFontSet,
-		CfbFontSizeGet,
-		CfbFontKerningSet,
-		CfbRamClear,
-		CfbStringWrite,
-		CfbRamFlush
+		ZCfbInit,
+		ZCfbFontSet,
+		ZCfbFontSizeGet,
+		ZCfbFontKerningSet,
+		ZCfbRamClear,
+		ZCfbStringWrite,
+		ZCfbRamFlush
 	};
 
 	struct ErrorState {
@@ -80,9 +80,9 @@ namespace character_framebuffer {
 
 			struct SystemState {
 				bool cfb_init = false;
-				bool display_ready = false;
+				bool cfb_ready = false;
 				bool kerning_ready = false;
-				bool font_ready = false;
+				bool text_ready = false;
 			};
 
 			struct DisplayDevice {
@@ -118,7 +118,7 @@ namespace character_framebuffer {
 *
 *	@brief		Error codes of the module
 *
-*	@invariant	If an error related to Zephyr's CFB API occurs then the code is prefixed with "Cfb"
+*	@invariant	If an error related to Zephyr's CFB API occurs then the code is prefixed with "ZCfb"
 *
 */
 
@@ -177,12 +177,12 @@ namespace character_framebuffer {
 *
 *	@pre		monochrome_display_device_ptr points to a valid device struct of a monochrome display
 *	@post		If the target display is not ready to be used then error.code is set to DeviceUnready
-*	@post		If an error occurs when initializing the framebuffer with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbInit
+*	@post		If an error occurs when initializing the framebuffer with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbInit
 *	@post		If the display width and height parameters obtained from Zephyr's CFB API are 0 then error.code is set to DisplayResolution
-*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
-*	@post		If an error occurs when setting the font to that at index 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
-*	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
-*	@post		If the size of the font obtained with Zephyr's CFB API is 0 then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
+*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbFontKerningSet
+*	@post		If an error occurs when setting the font to that at index 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbFontSet
+*	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbFontSizeGet
+*	@post		If the size of the font obtained with Zephyr's CFB API is 0 then its return value is saved in error.return_value and error.code is set to ZCfbFontSizeGet
 *	@post		If the obtained size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
 *	@post		On success the target device is ready, the CFB is initialized, the kerning is set to 0 px, the font is set to index 0, and error.code is set to Ok
 *
@@ -206,21 +206,21 @@ namespace character_framebuffer {
 *
 *	@param[in]	font_name						Name of the font in the configured list
 *
-*	@retval		DisplayUnready					If the display is not ready to be used
-*	@retval		CfbFontKerningSet				If an error occurs when setting the kerning to 0
+*	@retval		CfbUnready					If the display is not ready to be used
+*	@retval		ZCfbFontKerningSet				If an error occurs when setting the kerning to 0
 *	@retval		ParamFontIndex					If the assigned font index is greater than or equal to the number of fonts available in Zephyr's catalog
-*	@retval		CfbFontSet						If an error occurs when setting the font to that at the specified index
-*	@retval		CfbFontSizeGet					If an error occurs when obtaining the size of the font at the specified index or if the obtained size is 0
+*	@retval		ZCfbFontSet						If an error occurs when setting the font to that at the specified index
+*	@retval		ZCfbFontSizeGet					If an error occurs when obtaining the size of the font at the specified index or if the obtained size is 0
 *	@retval		DisplayResolution				If the obtained size of the font is greater than the obtained size of the display
 *	@retval		Ok								If no error occurs
 *
 *	@pre		The required font is available from Zephyr's system
 *	@pre		The required font has been correctly configured in the font header
-*	@post		If the display is not ready to be used then error.code is set to DisplayUnready
+*	@post		If the display is not ready to be used then error.code is set to CfbUnready
 *	@post		If any error besides the CFB unready occurs then another call is required to use the font
-*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontKerningSet
-*	@post		If an error occurs when setting the font to that at the specified index with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSet
-*	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbFontSizeGet
+*	@post		If an error occurs when setting the kerning to 0 with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbFontKerningSet
+*	@post		If an error occurs when setting the font to that at the specified index with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbFontSet
+*	@post		If an error occurs when obtaining the size of the font with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbFontSizeGet
 *	@post		If the size of the font is greater than the size of the display obtained with Zephyr's CFB API then error.code is set to DisplayResolution
 *	@post		On success the font is set to that at the specified index and error.code is set to Ok
 *
@@ -232,12 +232,12 @@ namespace character_framebuffer {
 *
 *	@brief		Method to clear framebuffer's RAM
 *
-*	@retval		DisplayUnready					If the display is not ready to be used
-*	@retval		CfbRamClear						If an error occurs when clearing the RAM
+*	@retval		CfbUnready					If the display is not ready to be used
+*	@retval		ZCfbRamClear						If an error occurs when clearing the RAM
 *	@retval 	Ok								If no error occurs
 *
-*	@post		If the display is not ready to be used then error.code is set to DisplayUnready
-*	@post		If an error occurs when clearing the RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbRamClear
+*	@post		If the display is not ready to be used then error.code is set to CfbUnready
+*	@post		If an error occurs when clearing the RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbRamClear
 *	@post		On success framebuffer's RAM is cleared and error.code is set to Ok
 *
 */
@@ -252,17 +252,17 @@ namespace character_framebuffer {
 *	@param[in]	row_px							Pixel row coordinate
 *	@param[in]	column_px						Pixel column coordinate
 *
-*	@retval		FontUnready						If the font is not ready to be used
+*	@retval		TextUnready						If the font is not ready to be used
 *	@retval		ParamPixelCoordinates			If the pixel coordinates are out of range
 *	@retval		ParamStringLength				If the length of the string from column_px exceeds the display width
-*	@retval		CfbStringWrite					If an error occurs when writing a character in framebuffer's RAM
+*	@retval		ZCfbStringWrite					If an error occurs when writing a character in framebuffer's RAM
 *	@retval 	Ok								If no error occurs
 *
 *	@pre		input_string contains a string compatible with Zephyr's font
-*	@post		If the font is not ready to be used then error.code is set to FontUnready
+*	@post		If the font is not ready to be used then error.code is set to TextUnready
 *	@post		If the pixel coordinates are out of range then error.code is set to ParamPixelCoordinates
 *	@post		If the length of the strings from column_px exceeds the display width then error.code is set to ParamStringLength
-*	@post		If an error occurs when writing a character with Zephyr's CFB API then its return value is saved in error.return_value, error.code is set to CfbStringWrite and its pixel coordinates are saved in error.row_px and error.column_px
+*	@post		If an error occurs when writing a character with Zephyr's CFB API then its return value is saved in error.return_value, error.code is set to ZCfbStringWrite and its pixel coordinates are saved in error.row_px and error.column_px
 *	@post		On success input_string is written in framebuffer's RAM and error.code is set to Ok
 *
 *	@invariant	All characters of the string are print at the same pixel row coordinate
@@ -276,12 +276,12 @@ namespace character_framebuffer {
 *
 *	@brief		Method to flush framebuffer's RAM to the target display's RAM
 *
-*	@retval		DisplayUnready					If the display is not ready to be used
-*	@retval		CfbRamFlush						If an error occurs when flushing framebuffer's RAM
+*	@retval		CfbUnready					If the display is not ready to be used
+*	@retval		ZCfbRamFlush						If an error occurs when flushing framebuffer's RAM
 *	@retval 	Ok								If no error occurs
 *
-*	@post		If the display is not ready to be used then error.code is set to DisplayUnready
-*	@post		If an error occurs when flushing framebuffer's RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to CfbRamFlush
+*	@post		If the display is not ready to be used then error.code is set to CfbUnready
+*	@post		If an error occurs when flushing framebuffer's RAM with Zephyr's CFB API then its return value is saved in error.return_value and error.code is set to ZCfbRamFlush
 *	@post		On success the data in framebuffer's RAM is flushed in display's RAM and error.code is set to Ok
 *
 */
@@ -295,10 +295,10 @@ namespace character_framebuffer {
 *	@param[out]	display_width_px				Reference to the variable where to store the display width
 *	@param[out]	display_height_px				Reference to the variable where to store the display height
 *
-*	@retval		DisplayUnready					If the display is not ready to be used
+*	@retval		CfbUnready					If the display is not ready to be used
 *	@retval		Ok								If no error occurs
 *
-*	@post		If the display is not ready to be used then error.code is set to DisplayUnready
+*	@post		If the display is not ready to be used then error.code is set to CfbUnready
 *	@post		On success the sizes of the display are assigned to the references and error.code is set to Ok
 *
 */
@@ -312,10 +312,10 @@ namespace character_framebuffer {
 *	@param[out]	font_width_px					Reference to the variable where to store the font width
 *	@param[out]	font_height_px					Reference to the variable where to store the font height
 *
-*	@retval		FontUnready						If the font is not ready to be used
+*	@retval		TextUnready						If the font is not ready to be used
 *	@retval		Ok								If no error occurs
 *
-*	@post		If the font is not ready to be used then error.code is set to FontUnready
+*	@post		If the font is not ready to be used then error.code is set to TextUnready
 *	@post		On success the sizes of the font are assigned to the references and error.code is set to Ok
 *
 */
