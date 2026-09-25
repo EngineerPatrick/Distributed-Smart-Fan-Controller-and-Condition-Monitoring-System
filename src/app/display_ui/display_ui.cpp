@@ -12,7 +12,7 @@
 */
 
 #include "display_ui.hpp"
-#include "monochrome_display.hpp"
+#include "grid_printer.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <array>
@@ -34,29 +34,29 @@ static TempValue temp;
 
 static SpeedValue speed;
 
-display_ui::ErrorCode display_ui::fixed_ui_print(monochrome_display::MonochromeDisplay& mc_obj) {
+display_ui::ErrorCode display_ui::fixed_ui_print(grid_printer::GridPrinter& mc_obj) {
 
-	if (mc_obj.grid_clear() != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_clear() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayClear;
 	}
 
-	if (mc_obj.grid_string_write("Readings", 0, 2) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write("Readings", 0, 2) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.grid_string_write("T     . degC", 1, 0) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write("T     . degC", 1, 0) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.grid_string_write("S        RPM", 2, 0) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write("S        RPM", 2, 0) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.grid_string_write("N         dB", 3, 0) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write("N         dB", 3, 0) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.grid_print() != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_print() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
@@ -131,12 +131,12 @@ static std::string_view digit_to_str_view(std::uint8_t digit) {
 	return "ErrorInternal";
 }
 
-static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag, monochrome_display::MonochromeDisplay& mc_obj) {
+static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag, grid_printer::GridPrinter& mc_obj) {
 
 	if (digit) {
 		std::string_view digit_str_view = digit_to_str_view(digit);
 
-		if (mc_obj.grid_string_write(digit_str_view, row_idx, column_idx) != monochrome_display::ErrorCode::Ok) {
+		if (mc_obj.cells_string_write(digit_str_view, row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 
@@ -145,7 +145,7 @@ static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std:
 
 	else if (!digit && digit_flag) {
 
-		if (mc_obj.grid_string_write(" ", row_idx, column_idx) != monochrome_display::ErrorCode::Ok) {
+		if (mc_obj.cells_string_write(" ", row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 
@@ -155,7 +155,7 @@ static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std:
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::temp_value_print(monochrome_display::MonochromeDisplay& mc_obj, std::int16_t temp_c_x10) {
+display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& mc_obj, std::int16_t temp_c_x10) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
 	std::array<std::uint8_t, 3> digits = {0, 0, 0};
 
@@ -165,7 +165,7 @@ display_ui::ErrorCode display_ui::temp_value_print(monochrome_display::Monochrom
 
 	if (temp_c_x10 < 0 && !temp.negative_sign) {
 
-			if (mc_obj.grid_string_write("-", 1, 3) != monochrome_display::ErrorCode::Ok) {
+			if (mc_obj.cells_string_write("-", 1, 3) != grid_printer::ErrorCode::Ok) {
 				return display_ui::ErrorCode::DisplayStringLoad;
 			}
 
@@ -174,7 +174,7 @@ display_ui::ErrorCode display_ui::temp_value_print(monochrome_display::Monochrom
 
 	else if (temp_c_x10 >= 0 && temp.negative_sign) {
 
-			if (mc_obj.grid_string_write(" ", 1, 3) != monochrome_display::ErrorCode::Ok) {
+			if (mc_obj.cells_string_write(" ", 1, 3) != grid_printer::ErrorCode::Ok) {
 				return display_ui::ErrorCode::DisplayStringLoad;
 			}
 
@@ -191,24 +191,24 @@ display_ui::ErrorCode display_ui::temp_value_print(monochrome_display::Monochrom
 
 	std::string_view digit2_str_view = digit_to_str_view(digits.at(1));
 
-	if (mc_obj.grid_string_write(digit2_str_view, 1, 5) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write(digit2_str_view, 1, 5) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
 	std::string_view digit3_str_view = digit_to_str_view(digits.at(2));
 
-	if (mc_obj.grid_string_write(digit3_str_view, 1, 7) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write(digit3_str_view, 1, 7) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.grid_print() != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_print() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::speed_value_print(monochrome_display::MonochromeDisplay& mc_obj, std::uint16_t speed_rpm) {
+display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& mc_obj, std::uint16_t speed_rpm) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
 	std::array<std::uint8_t, 4> digits = {0, 0, 0, 0};
 
@@ -237,7 +237,7 @@ display_ui::ErrorCode display_ui::speed_value_print(monochrome_display::Monochro
 
 		speed.second_digit = true;
 
-		if (mc_obj.grid_string_write(digit2_str_view, 2, 6) != monochrome_display::ErrorCode::Ok) {
+		if (mc_obj.cells_string_write(digit2_str_view, 2, 6) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 	}
@@ -255,18 +255,18 @@ display_ui::ErrorCode display_ui::speed_value_print(monochrome_display::Monochro
 
 		speed.third_digit = true;
 
-		if (mc_obj.grid_string_write(digit3_str_view, 2, 7) != monochrome_display::ErrorCode::Ok) {
+		if (mc_obj.cells_string_write(digit3_str_view, 2, 7) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 	}
 
 	std::string_view digit4_str_view = digit_to_str_view(digits.at(3));
 
-	if (mc_obj.grid_string_write(digit4_str_view, 2, 8) != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_string_write(digit4_str_view, 2, 8) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.grid_print() != monochrome_display::ErrorCode::Ok) {
+	if (mc_obj.cells_print() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
