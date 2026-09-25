@@ -235,6 +235,8 @@ display_ui::ErrorCode display_ui::speed_value_print(monochrome_display::Monochro
 	else {
 		std::string_view digit2_str_view = digit_to_str_view(digits.at(1));
 
+		speed.second_digit = true;
+
 		if (mc_obj.grid_string_write(digit2_str_view, 2, 6) != monochrome_display::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
@@ -250,6 +252,8 @@ display_ui::ErrorCode display_ui::speed_value_print(monochrome_display::Monochro
 
 	else {
 		std::string_view digit3_str_view = digit_to_str_view(digits.at(2));
+
+		speed.third_digit = true;
 
 		if (mc_obj.grid_string_write(digit3_str_view, 2, 7) != monochrome_display::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
