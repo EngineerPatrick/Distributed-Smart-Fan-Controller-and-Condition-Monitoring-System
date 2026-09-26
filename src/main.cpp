@@ -6,10 +6,9 @@
 
 #include "grid_printer.hpp"
 #include "display_ui.hpp"
-#include "temperature_sensor.hpp"
-#include "pwm.hpp"
-#include "counter_capture.hpp"
-#include "input_capture.hpp"
+#include "temperature_reader.hpp"
+#include "pwm_controller.hpp"
+#include "input_capture_controller.hpp"
 #include <cstdint>
 #include <zephyr/devicetree.h>
 #include <zephyr/device.h>
@@ -35,45 +34,51 @@ int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
 	gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_ACTIVE);
 
-	static grid_printer::GridPrinter mc0{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
+	static grid_printer::GridPrinter readings_grid{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
 
-	if (mc0.error_get() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.error_state_get().code != grid_printer::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	static temperature_sensor::TemperatureSensor bme{TEMPERATURE_SENSOR_DEVICE(SENSOR0_ALIAS)};
+	static temperature_reader::TemperatureSignal room_temp{TEMPERATURE_SENSOR_DEVICE(SENSOR0_ALIAS)};
 
-	if (bme.error_state_get().code != temperature_sensor::ErrorCode::Ok) {
+	if (room_temp.error_state_get().code != temperature_reader::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	static pwm::PwmSignal control_fan{PWM_DT_SPEC_GET(DT_ALIAS(FAN0_ALIAS))};
+	static pwm_controller::PwmSignal control_fan{PWM_DT_SPEC_GET(DT_ALIAS(FAN0_ALIAS))};
 
-	if (control_fan.error_state_get().code != pwm::ErrorCode::Ok) {
+	if (control_fan.error_state_get().code != pwm_controller::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	static input_capture::InputCaptureSignal fan_tach{COUNTER_CAPTURE_TIMER(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
+	static input_capture_controller::InputCaptureSignal fan_tach{INPUT_CAPTURE_TIMER_DEVICE(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
 
-	if (fan_tach.error_get() != input_capture::ErrorCode::Ok) {
+	if (fan_tach.error_state_get().code != input_capture_controller::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	if (display_ui::fixed_ui_print(mc0) != display_ui::ErrorCode::Ok) {
+	if (display_ui::fixed_ui_print(readings_grid) != display_ui::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	if (control_fan.start(PERIOD_NS_FOR_25KHZ, 5000) != pwm::ErrorCode::Ok) {
+	if (control_fan.start(PERIOD_NS_FOR_25KHZ, 5000) != pwm_controller::ErrorCode::Ok) {
+		gpio_pin_toggle_dt(&error_led);
+
+		while (1) {}
+	}
+
+	if (fan_tach.capture_start() != input_capture_controller::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -83,13 +88,13 @@ int main(void) {
 
 	while (1) {
 
-		if (bme.temp_read(temp_c_x100) != temperature_sensor::ErrorCode::Ok) {
+		if (room_temp.value_read(temp_c_x100) != temperature_reader::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
 		}
 
-		if (fan_tach.period_ns_get(fan_tach_period_ns) != input_capture::ErrorCode::Ok) {
+		if (fan_tach.capture_period_ns_get(fan_tach_period_ns) != input_capture_controller::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
@@ -97,13 +102,13 @@ int main(void) {
 
 		speed_rpm = static_cast<std::uint16_t>(60000000000ULL / (fan_tach_period_ns * 2));
 
-		if (display_ui::temp_value_print(mc0, (temp_c_x100 / 10)) != display_ui::ErrorCode::Ok) {
+		if (display_ui::temp_value_print(readings_grid, (temp_c_x100 / 10)) != display_ui::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
 		}
 
-		if (display_ui::speed_value_print(mc0, speed_rpm) != display_ui::ErrorCode::Ok) {
+		if (display_ui::speed_value_print(readings_grid, speed_rpm) != display_ui::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}

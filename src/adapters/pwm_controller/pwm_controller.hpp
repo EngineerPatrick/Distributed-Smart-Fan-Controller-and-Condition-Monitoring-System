@@ -1,6 +1,6 @@
 /**
 *
-*	@file		pwm.hpp
+*	@file		pwm_controller.hpp
 *
 *	@brief		Public API for the pwm module
 *
@@ -10,8 +10,8 @@
 *
 */
 
-#ifndef PWM_HPP
-#define PWM_HPP
+#ifndef PWM_CONTROLLER_HPP
+#define PWM_CONTROLLER_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -21,19 +21,19 @@
 #define PERIOD_NS_FOR_25KHZ 40000UL							//25 KHz Frequency
 #define PULSE_NS_FOR_HALF_DC 20000UL						//50% Duty-cycle
 
-namespace pwm {
+namespace pwm_controller {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
 		DeviceUnready,
 		PwmUnready,
-		WavefornUnready,
-		ZPwmSet,
-		ParamWaveform
+		ParamWaveform,
+		PwmNotRunning,
+		ZPwmSet
 	};
 
 	struct ErrorState {
-		pwm::ErrorCode code = pwm::ErrorCode::Ok;
+		pwm_controller::ErrorCode code = pwm_controller::ErrorCode::Ok;
 		int return_value = 0;
 	};
 
@@ -41,7 +41,7 @@ namespace pwm {
 
 		public:
 
-			PwmSignal(struct pwm_dt_spec pwm_dt_spec);
+			PwmSignal(struct pwm_dt_spec timer_device);
 
 			/*
 			*
@@ -53,17 +53,16 @@ namespace pwm {
 			PwmSignal& operator=(const PwmSignal&) = delete;
 			PwmSignal& operator=(PwmSignal&&) = delete;
 
-			pwm::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns);
-			pwm::ErrorCode stop();
+			pwm_controller::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns);
+			pwm_controller::ErrorCode stop();
 
-			pwm::ErrorCode waveform_params_get(std::size_t& waveform_period_ns, std::size_t& waveform_pulse_width_ns, std::size_t& waveform_duty_cycle_x100);
-			[[nodiscard("Called error getter and discarded its return value")]] pwm::ErrorState error_state_get() const;
+			[[nodiscard("Called error getter and discarded its return value")]] pwm_controller::ErrorState error_state_get() const;
 
 		private:
 
 			struct SystemState {
 				bool pwm_ready = false;
-				bool waveform_ready = false;
+				bool pwm_running = false;
 			};
 
 			struct WaveformState {
@@ -72,13 +71,11 @@ namespace pwm {
 				std::uint8_t duty_cycle_x100 = 0;
 			};
 
-			struct pwm_dt_spec dt_spec = {};
+			struct pwm_dt_spec timer = {};
 
-			pwm::ErrorState error;
-			pwm::PwmSignal::SystemState system;
-
-			pwm::PwmSignal::WaveformState waveform;
-
+			pwm_controller::ErrorState error;
+			pwm_controller::PwmSignal::SystemState system;
+			pwm_controller::PwmSignal::WaveformState waveform;
 	};
 }
 
@@ -86,7 +83,7 @@ namespace pwm {
 
 /**
 *
-*	@enum		pwm::ErrorCode
+*	@enum		pwm_controller::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -96,7 +93,7 @@ namespace pwm {
 
 /**
 *
-*	@struct		pwm::ErrorState
+*	@struct		pwm_controller::ErrorState
 *
 *	@brief		Data structure for all types of errors
 *
@@ -108,7 +105,7 @@ namespace pwm {
 
 /**
 *
-*	@class		pwm::PwmSignal
+*	@class		pwm_controller::PwmSignal
 *
 *	@brief		Class for Zephyr's PWM API
 *
@@ -118,7 +115,7 @@ namespace pwm {
 
 /**
 *
-*	@fn			pwm::PwmSignal::PwmSignal(struct pwm_dt_spec pwm_dt_spec)
+*	@fn			pwm_controller::PwmSignal::PwmSignal(struct pwm_dt_spec pwm_dt_spec)
 *
 *	@brief		Constructor to initialize an instance for a specific PWM
 *
@@ -132,7 +129,7 @@ namespace pwm {
 
 /**
 *
-*	@fn			pwm::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns)
+*	@fn			pwm_controller::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns)
 *
 *	@brief		Method to start the PWM with specific waveform parameters
 *
@@ -153,7 +150,7 @@ namespace pwm {
 
 /**
 *
-*	@fn			pwm::ErrorCode stop()
+*	@fn			pwm_controller::ErrorCode stop()
 *
 *	@brief		Method to stop the PWM
 *
@@ -167,26 +164,7 @@ namespace pwm {
 
 /**
 *
-*	@fn			pwm::ErrorCode waveform_params_get(std::size_t& waveform_period_ns, std::size_t& waveform_pulse_width_ns, std::size_t& waveform_duty_cycle_x100)
-*
-*	@brief		Method to obtain the last set waveform parameters
-*
-*	@param[out]	waveform_period_ns				Reference to the variable where to store the waveform period in nanoseconds
-*	@param[out]	waveform_pulse_width_ns			Reference to the variable where to store the waveform pulse width in nanoseconds
-*
-*	@retval		WavefornUnready					If the PWM waveform parameters have never been set since the creation of the instance
-*	@retval		Ok								If no error occurs
-*
-*	@post		If the PWM waveform parameters have never been set since the creation of the instance then error.code is set to WavefornUnready
-*	@post		On success the waveform parameter values are assigned to the passed references and error.code is set to Ok
-*
-*/
-
-
-
-/**
-*
-*	@fn			pwm::ErrorState error_state_get() const
+*	@fn			pwm_controller::ErrorState error_state_get() const
 *
 *	@brief		Method to obtain the last set waveform parameters
 *
