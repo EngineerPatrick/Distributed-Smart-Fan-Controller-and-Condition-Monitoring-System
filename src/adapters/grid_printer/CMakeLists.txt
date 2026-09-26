@@ -8,4 +8,5 @@ target_sources(app
 		TYPE HEADERS
 		FILES
 		grid_printer.hpp
+		fonts_adapter.hpp
 )

@@ -1,8 +1,8 @@
 /**
 *
-*	@file		temperature_sensor.hpp
+*	@file		temperature_reader.hpp
 *
-*	@brief		Public API for the temperature_sensor module
+*	@brief		Public API for the temperature_reader module
 *
 *	@details	Adapter module for Zephyr's Sensor API
 *
@@ -10,8 +10,8 @@
 *
 */
 
-#ifndef TEMPERATURE_SENSOR_HPP
-#define TEMPERATURE_SENSOR_HPP
+#ifndef TEMPERATURE_READER_HPP
+#define TEMPERATURE_READER_HPP
 
 #include <cstdint>
 #include <cstddef>
@@ -25,15 +25,15 @@
 		\
 		RTIO_DEFINE(CONCAT_UNDRSCR(ctx, alias), 1, 1); \
 		\
-		temperature_sensor::SensorState CONCAT_UNDRSCR(temperature_sensor, alias){ \
+		temperature_reader::SensorDevice CONCAT_UNDRSCR(alias, device){ \
 			{DEVICE_DT_GET(DT_ALIAS(alias))}, \
 			{&CONCAT_UNDRSCR(iodev, alias)}, \
 			{&CONCAT_UNDRSCR(ctx, alias)} \
 		};
 
-#define TEMPERATURE_SENSOR_DEVICE(alias) CONCAT_UNDRSCR(temperature_sensor, alias)
+#define TEMPERATURE_SENSOR_DEVICE(alias) CONCAT_UNDRSCR(alias, device)
 
-namespace temperature_sensor {
+namespace temperature_reader {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
@@ -45,38 +45,44 @@ namespace temperature_sensor {
 	};
 
 	struct ErrorState {
-		temperature_sensor::ErrorCode code = temperature_sensor::ErrorCode::Ok;
+		temperature_reader::ErrorCode code = temperature_reader::ErrorCode::Ok;
 		int return_value = 0;
 	};
 
-	struct SensorState {
+	struct SensorDevice {
 		const struct device* const device_ptr;
 		const struct rtio_iodev* const iodev_ptr;
 		struct rtio* const ctx_ptr;
-		const struct sensor_decoder_api* const decoder = {};
 	};
 
-	class TemperatureSensor {
+	class TemperatureSignal {
 
 		public:
 
-			TemperatureSensor(temperature_sensor::SensorState temperature_sensor);
+			TemperatureSignal(temperature_reader::SensorDevice temperature_sensor_device);
 
 			/*
 			*
 			*	Copy/move constructors/operators are deleted to prevent the creation of a copy of this class through these operations
 			*
 			*/
-			TemperatureSensor(const TemperatureSensor&) = delete;
-			TemperatureSensor(TemperatureSensor&&) = delete;
-			TemperatureSensor& operator=(const TemperatureSensor&) = delete;
-			TemperatureSensor& operator=(TemperatureSensor&&) = delete;
+			TemperatureSignal(const TemperatureSignal&) = delete;
+			TemperatureSignal(TemperatureSignal&&) = delete;
+			TemperatureSignal& operator=(const TemperatureSignal&) = delete;
+			TemperatureSignal& operator=(TemperatureSignal&&) = delete;
 
-			temperature_sensor::ErrorCode temp_read(std::int16_t& temp_c_x100);
+			temperature_reader::ErrorCode value_read(std::int16_t& temp_c_x100);
 
-			[[nodiscard("Called error getter and discarded its return value")]] temperature_sensor::ErrorState error_state_get() const;
+			[[nodiscard("Called error getter and discarded its return value")]] temperature_reader::ErrorState error_state_get() const;
 
 		private:
+
+			struct SensorState {
+				const struct device* const device_ptr;
+				const struct rtio_iodev* const iodev_ptr;
+				struct rtio* const ctx_ptr;
+				const struct sensor_decoder_api* const decoder = {};
+			};
 
 			struct SystemState {
 				bool reading_ready = false;
@@ -87,14 +93,13 @@ namespace temperature_sensor {
 				std::int16_t temp_c_x100 = 0;
 			};
 
+			temperature_reader::ErrorState error;
+			temperature_reader::TemperatureSignal::SystemState system;
+			temperature_reader::TemperatureSignal::SensorState sensor;
+			temperature_reader::TemperatureSignal::ReadingState reading;
 
-			temperature_sensor::ErrorState error;
-			temperature_sensor::TemperatureSensor::SystemState system;
-			temperature_sensor::SensorState sensor;
-
-			temperature_sensor::TemperatureSensor::ReadingState reading;
-
-			[[nodiscard("Internal error: necessary struct discarded")]] const struct sensor_decoder_api* const init_operations(const struct device* const temperature_sensor_ptr);
+			[[nodiscard("Internal error: necessary struct discarded")]]
+			const struct sensor_decoder_api* const init_operations(const struct device* const temperature_sensor_device_ptr);
 	};
 }
 
@@ -102,7 +107,7 @@ namespace temperature_sensor {
 
 /**
 *
-*	@enum		temperature_sensor::ErrorCode
+*	@enum		temperature_reader::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -112,11 +117,11 @@ namespace temperature_sensor {
 
 /**
 *
-*	@struct		temperature_sensor::ErrorState
+*	@struct		temperature_reader::ErrorState
 *
 *	@brief		Data structure for all types of errors
 *
-*	@invariant	All members of this struct are set at the end of every fallible method of TemperatureSensor
+*	@invariant	All members of this struct are set at the end of every fallible method of TemperatureSignal
 *	@invariant	If a module-based error occurs then it is represented by code and the other member is equal to 0
 *	@invariant	If an error related to Zephyr's Sensor API occurs then it is represented by both code and return_value
 *
@@ -124,17 +129,17 @@ namespace temperature_sensor {
 
 /**
 *
-*	@struct		temperature_sensor::SensorDevice
+*	@struct		temperature_reader::SensorDevice
 *
 *	@brief		Device-related spec struct used by the constructor and passed by the caller
 *
-*	@note		The caller should obtain a valid instance of this struct by using the provided macro "DEFINE_TEMPERATURE_SENSOR"
+*	@note		The caller should obtain a valid instance of this struct by using the provided macro "DEFINE_TEMPERATURE_READER"
 *
 */
 
 /**
 *
-*	@class		temperature_sensor::TemperatureSensor
+*	@class		temperature_reader::TemperatureSignal
 *
 *	@brief		Class for Zephyr's Sensor API
 *
@@ -144,13 +149,13 @@ namespace temperature_sensor {
 
 /**
 *
-*	@fn			temperature_sensor::TemperatureSensor::TemperatureSensor(temperature_sensor::SensorDevice temperature_sensor)
+*	@fn			temperature_reader::TemperatureSignal::TemperatureSignal(temperature_reader::SensorDevice temperature_reader)
 *
 *	@brief		Constructor to initialize the sensor
 *
-*	@param[in]	temperature_sensor		SensorDevice struct for the instance
+*	@param[in]	temperature_reader		SensorDevice struct for the instance
 *
-*	@pre		temperature_sensor is a valid SensorDevice struct generated by using "DEFINE_TEMPERATURE_SENSOR" and passed by using "TEMPERATURE SENSOR DEVICE"
+*	@pre		temperature_reader is a valid SensorDevice struct generated by using "DEFINE_TEMPERATURE_READER" and passed by using "TEMPERATURE SENSOR DEVICE"
 *	@post		If the target sensor is not ready to be used then error.code is set to DeviceUnready
 *	@post		If an error occurs when obtaining the decoder with Zephyr's Sensor API then its return value is saved in error.return_value and error.code is set to ZSensorDecoderGet
 *	@post		On success the target device is ready, the sensor is initialized and error.code is set to Ok
@@ -159,7 +164,7 @@ namespace temperature_sensor {
 
 /**
 *
-*	@fn			temperature_sensor::ErrorCode temperature_sensor::TemperatureSensor::temp_read(std::int16_t& temp_c_x100);
+*	@fn			temperature_reader::ErrorCode temperature_reader::TemperatureSignal::temp_read(std::int16_t& temp_c_x100);
 *
 *	@brief		Method to read the temperature from the sensor and expose it in hundredth of Celsius degrees
 *
@@ -179,7 +184,7 @@ namespace temperature_sensor {
 
 /**
 *
-*	@fn			temperature_sensor::ErrorState temperature_sensor::TemperatureSensor::error_state_get() const
+*	@fn			temperature_reader::ErrorState temperature_reader::TemperatureSignal::error_state_get() const
 *
 *	@brief		Method to obtain the full error report
 *

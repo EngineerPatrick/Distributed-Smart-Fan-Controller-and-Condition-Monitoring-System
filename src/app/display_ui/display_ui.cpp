@@ -27,36 +27,35 @@ struct SpeedValue {
 	bool first_digit = false;
 	bool second_digit = false;
 	bool third_digit = false;
-
 };
 
 static TempValue temp;
 
 static SpeedValue speed;
 
-display_ui::ErrorCode display_ui::fixed_ui_print(grid_printer::GridPrinter& mc_obj) {
+display_ui::ErrorCode display_ui::fixed_ui_print(grid_printer::GridPrinter& readings_grid) {
 
-	if (mc_obj.cells_clear() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_clear() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayClear;
 	}
 
-	if (mc_obj.cells_string_write("Readings", 0, 2) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("Readings", 0, 2) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.cells_string_write("T     . degC", 1, 0) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("T     . degC", 1, 0) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.cells_string_write("S        RPM", 2, 0) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("S        RPM", 2, 0) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.cells_string_write("N         dB", 3, 0) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("N         dB", 3, 0) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.cells_print() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_print() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
@@ -68,8 +67,8 @@ static void digits_extract(std::int16_t full_value, std::array<std::uint8_t, 3>&
 
 	full_value = (full_value < 0) ? full_value * -1 : full_value;
 
-	for (std::size_t i = 0; i < digits.size(); i++) {
-		digits.at(i) = (!i) ? static_cast<std::uint8_t>(full_value / divisor) : static_cast<std::uint8_t>((full_value / divisor) % 10);
+	for (std::size_t digit_index = 0; digit_index < digits.size(); digit_index++) {
+		digits.at(digit_index) = (!digit_index) ? static_cast<std::uint8_t>(full_value / divisor) : static_cast<std::uint8_t>((full_value / divisor) % 10);
 		divisor /= 10;
 	}
 }
@@ -77,8 +76,8 @@ static void digits_extract(std::int16_t full_value, std::array<std::uint8_t, 3>&
 static void digits_extract(std::uint16_t full_value, std::array<std::uint8_t, 4>& digits) {
 	std::uint16_t divisor = 1000;
 
-	for (std::size_t i = 0; i < digits.size(); i++) {
-		digits.at(i) = (!i) ? static_cast<std::uint8_t>(full_value / divisor) : static_cast<std::uint8_t>((full_value / divisor) % 10);
+	for (std::size_t digit_index = 0; digit_index < digits.size(); digit_index++) {
+		digits.at(digit_index) = (!digit_index) ? static_cast<std::uint8_t>(full_value / divisor) : static_cast<std::uint8_t>((full_value / divisor) % 10);
 		divisor /= 10;
 	}
 }
@@ -131,12 +130,18 @@ static std::string_view digit_to_str_view(std::uint8_t digit) {
 	return "ErrorInternal";
 }
 
-static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag, grid_printer::GridPrinter& mc_obj) {
+static display_ui::ErrorCode empty_digit_handler(
+	std::uint8_t& digit,
+	const std::size_t row_idx,
+	const std::size_t column_idx,
+	bool& digit_flag,
+	grid_printer::GridPrinter& readings_grid
+) {
 
 	if (digit) {
 		std::string_view digit_str_view = digit_to_str_view(digit);
 
-		if (mc_obj.cells_string_write(digit_str_view, row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(digit_str_view, row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 
@@ -145,7 +150,7 @@ static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std:
 
 	else if (!digit && digit_flag) {
 
-		if (mc_obj.cells_string_write(" ", row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(" ", row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 
@@ -155,7 +160,7 @@ static display_ui::ErrorCode empty_digit_handler(std::uint8_t& digit, const std:
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& mc_obj, std::int16_t temp_c_x10) {
+display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& readings_grid, std::int16_t temp_c_x10) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
 	std::array<std::uint8_t, 3> digits = {0, 0, 0};
 
@@ -165,7 +170,7 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& mc
 
 	if (temp_c_x10 < 0 && !temp.negative_sign) {
 
-			if (mc_obj.cells_string_write("-", 1, 3) != grid_printer::ErrorCode::Ok) {
+			if (readings_grid.cells_string_write("-", 1, 3) != grid_printer::ErrorCode::Ok) {
 				return display_ui::ErrorCode::DisplayStringLoad;
 			}
 
@@ -174,7 +179,7 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& mc
 
 	else if (temp_c_x10 >= 0 && temp.negative_sign) {
 
-			if (mc_obj.cells_string_write(" ", 1, 3) != grid_printer::ErrorCode::Ok) {
+			if (readings_grid.cells_string_write(" ", 1, 3) != grid_printer::ErrorCode::Ok) {
 				return display_ui::ErrorCode::DisplayStringLoad;
 			}
 
@@ -183,7 +188,7 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& mc
 
 	digits_extract(temp_c_x10, digits);
 
-	error_code = empty_digit_handler(digits.at(0), 1, 4, temp.first_digit, mc_obj);
+	error_code = empty_digit_handler(digits.at(0), 1, 4, temp.first_digit, readings_grid);
 
 	if (error_code != display_ui::ErrorCode::Ok) {
 		return error_code;
@@ -191,24 +196,24 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& mc
 
 	std::string_view digit2_str_view = digit_to_str_view(digits.at(1));
 
-	if (mc_obj.cells_string_write(digit2_str_view, 1, 5) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write(digit2_str_view, 1, 5) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
 	std::string_view digit3_str_view = digit_to_str_view(digits.at(2));
 
-	if (mc_obj.cells_string_write(digit3_str_view, 1, 7) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write(digit3_str_view, 1, 7) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.cells_print() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_print() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& mc_obj, std::uint16_t speed_rpm) {
+display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& readings_grid, std::uint16_t speed_rpm) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
 	std::array<std::uint8_t, 4> digits = {0, 0, 0, 0};
 
@@ -218,14 +223,14 @@ display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& m
 
 	digits_extract(speed_rpm, digits);
 
-	error_code = empty_digit_handler(digits.at(0), 2, 5, speed.first_digit, mc_obj);
+	error_code = empty_digit_handler(digits.at(0), 2, 5, speed.first_digit, readings_grid);
 
 	if (error_code != display_ui::ErrorCode::Ok) {
 		return error_code;
 	}
 
 	if (!speed.first_digit) {
-		error_code = empty_digit_handler(digits.at(1), 2, 6, speed.second_digit, mc_obj);
+		error_code = empty_digit_handler(digits.at(1), 2, 6, speed.second_digit, readings_grid);
 
 		if (error_code != display_ui::ErrorCode::Ok) {
 			return error_code;
@@ -237,13 +242,13 @@ display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& m
 
 		speed.second_digit = true;
 
-		if (mc_obj.cells_string_write(digit2_str_view, 2, 6) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(digit2_str_view, 2, 6) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 	}
 
 	if (!speed.second_digit) {
-		error_code = empty_digit_handler(digits.at(2), 2, 7, speed.third_digit, mc_obj);
+		error_code = empty_digit_handler(digits.at(2), 2, 7, speed.third_digit, readings_grid);
 
 		if (error_code != display_ui::ErrorCode::Ok) {
 			return error_code;
@@ -255,18 +260,18 @@ display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& m
 
 		speed.third_digit = true;
 
-		if (mc_obj.cells_string_write(digit3_str_view, 2, 7) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(digit3_str_view, 2, 7) != grid_printer::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 	}
 
 	std::string_view digit4_str_view = digit_to_str_view(digits.at(3));
 
-	if (mc_obj.cells_string_write(digit4_str_view, 2, 8) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write(digit4_str_view, 2, 8) != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (mc_obj.cells_print() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_print() != grid_printer::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
