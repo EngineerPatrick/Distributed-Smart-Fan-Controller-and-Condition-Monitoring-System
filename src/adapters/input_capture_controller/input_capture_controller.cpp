@@ -14,8 +14,12 @@ void input_capture_controller::InputCaptureSignal::capture_callback(
 ) {
 	input_capture_controller::InputCaptureSignal* const this_context_ptr = static_cast<input_capture_controller::InputCaptureSignal*>(context_ptr);
 
-	if (this_context_ptr->system.capture_reading) {
-		return;
+	if (atomic_operations::atomic_var_get(&(this_context_ptr->system.first_capture))) {
+		atomic_operations::atomic_var_set(&(this_context_ptr->system.new_capture), 1);
+	}
+
+	else {
+		atomic_operations::atomic_var_set(&(this_context_ptr->system.first_capture), 1);
 	}
 
 	atomic_operations::atomic_var_set(
@@ -26,13 +30,16 @@ void input_capture_controller::InputCaptureSignal::capture_callback(
 		)
 	);
 
-	atomic_operations::atomic_var_set(&(this_context_ptr->system.new_capture), 1);
+	if (!atomic_operations::atomic_var_get(&(this_context_ptr->system.capture_reading))) {
+		atomic_operations::atomic_var_set(&(this_context_ptr->capture_copy.current_timestamp_ticks), this_context_ptr->capture.current_timestamp_ticks);
+		atomic_operations::atomic_var_set(&(this_context_ptr->capture_copy.previous_timestamp_ticks), this_context_ptr->capture.previous_timestamp_ticks);
+	}
 }
 
 input_capture_controller::InputCaptureSignal::InputCaptureSignal(const counter_capture_dt_spec timer_device, const counter_capture_flags_t additional_flags) :
 counter{
 	{{timer_device.dev}, {timer_device.flags | additional_flags}, {timer_device.chan_id}},
-	counter_get_max_top_value(this->counter.timer.dev)
+	counter_get_max_top_value(this->counter.timer.dev) + 1
 } {
 
 	if (!device_is_ready(this->counter.timer.dev)) {
@@ -72,8 +79,6 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 		}
 	}
 
-	atomic_operations::atomic_var_set(&(this->system.new_capture), 0);
-	atomic_operations::atomic_var_set(&(this->system.capture_reading), 0);
 	this->error.return_value = counter_start(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
@@ -107,6 +112,13 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 		return this->error.code;
 	}
 
+	atomic_operations::atomic_var_set(&(this->system.new_capture), 0);
+	atomic_operations::atomic_var_set(&(this->system.capture_reading), 0);
+	atomic_operations::atomic_var_set(&(this->capture.current_timestamp_ticks), 0);
+	atomic_operations::atomic_var_set(&(this->capture.previous_timestamp_ticks), 0);
+	atomic_operations::atomic_var_set(&(this->capture_copy.current_timestamp_ticks), 0);
+	atomic_operations::atomic_var_set(&(this->capture_copy.previous_timestamp_ticks), 0);
+
 	this->system.capture_running = false;
 	this->error = {input_capture_controller::ErrorCode::Ok, 0};
 	return this->error.code;
@@ -129,10 +141,10 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 	atomic_operations::atomic_var_set(&(this->system.capture_reading), 1);
 	atomic_operations::atomic_var_set(&(this->system.new_capture), 0);
 
-	current_timestamp_ticks = atomic_operations::atomic_var_get(&(this->capture.current_timestamp_ticks));
-	previous_timestamp_ticks = atomic_operations::atomic_var_get(&(this->capture.previous_timestamp_ticks));
+	current_timestamp_ticks = atomic_operations::atomic_var_get(&(this->capture_copy.current_timestamp_ticks));
+	previous_timestamp_ticks = atomic_operations::atomic_var_get(&(this->capture_copy.previous_timestamp_ticks));
 
-	if (current_timestamp_ticks > previous_timestamp_ticks) {
+	if (current_timestamp_ticks >= previous_timestamp_ticks) {
 		capture_period_ns = counter_ticks_to_ns(this->counter.timer.dev, current_timestamp_ticks - previous_timestamp_ticks);
 	}
 
