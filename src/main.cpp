@@ -27,6 +27,9 @@
 
 DEFINE_TEMPERATURE_SENSOR(SENSOR0_ALIAS)
 
+#define PERIOD_NS_FOR_25KHZ 40000UL							//25 KHz Frequency
+#define PULSE_NS_FOR_HALF_DC 20000UL						//50% Duty-cycle
+
 int main(void) {
 	std::int16_t temp_c_x100 = 0;
 	std::uint16_t speed_rpm = 0;

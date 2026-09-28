@@ -18,9 +18,6 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
 
-#define PERIOD_NS_FOR_25KHZ 40000UL							//25 KHz Frequency
-#define PULSE_NS_FOR_HALF_DC 20000UL						//50% Duty-cycle
-
 namespace pwm_controller {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
@@ -41,7 +38,7 @@ namespace pwm_controller {
 
 		public:
 
-			PwmSignal(struct pwm_dt_spec timer_device);
+			explicit PwmSignal(struct pwm_dt_spec timer_device);
 
 			/*
 			*
