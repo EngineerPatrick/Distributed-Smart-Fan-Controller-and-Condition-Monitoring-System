@@ -1,8 +1,8 @@
 #include "input_capture_controller.hpp"
-#include "atomic_operations.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <zephyr/device.h>
+#include <zephyr/sys/atomic.h>
 #include <zephyr/drivers/counter.h>
 
 void input_capture_controller::InputCaptureSignal::capture_callback(
@@ -14,25 +14,25 @@ void input_capture_controller::InputCaptureSignal::capture_callback(
 ) {
 	input_capture_controller::InputCaptureSignal* const this_context_ptr = static_cast<input_capture_controller::InputCaptureSignal*>(context_ptr);
 
-	if (atomic_operations::atomic_var_get(&(this_context_ptr->system.first_capture))) {
-		atomic_operations::atomic_var_set(&(this_context_ptr->system.new_capture), 1);
+	if (atomic_get(&(this_context_ptr->system.first_capture))) {
+		atomic_set(&(this_context_ptr->system.new_capture), 1);
 	}
 
 	else {
-		atomic_operations::atomic_var_set(&(this_context_ptr->system.first_capture), 1);
+		atomic_set(&(this_context_ptr->system.first_capture), 1);
 	}
 
-	atomic_operations::atomic_var_set(
+	atomic_set(
 		&(this_context_ptr->capture.previous_timestamp_ticks),
-		atomic_operations::atomic_var_set(
+		atomic_set(
 			&(this_context_ptr->capture.current_timestamp_ticks),
 			current_timestamp_ticks
 		)
 	);
 
-	if (!atomic_operations::atomic_var_get(&(this_context_ptr->system.capture_reading))) {
-		atomic_operations::atomic_var_set(&(this_context_ptr->capture_copy.current_timestamp_ticks), this_context_ptr->capture.current_timestamp_ticks);
-		atomic_operations::atomic_var_set(&(this_context_ptr->capture_copy.previous_timestamp_ticks), this_context_ptr->capture.previous_timestamp_ticks);
+	if (!atomic_get(&(this_context_ptr->system.capture_reading))) {
+		atomic_set(&(this_context_ptr->capture_copy.current_timestamp_ticks), this_context_ptr->capture.current_timestamp_ticks);
+		atomic_set(&(this_context_ptr->capture_copy.previous_timestamp_ticks), this_context_ptr->capture.previous_timestamp_ticks);
 	}
 }
 
@@ -112,12 +112,12 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 		return this->error.code;
 	}
 
-	atomic_operations::atomic_var_set(&(this->system.new_capture), 0);
-	atomic_operations::atomic_var_set(&(this->system.capture_reading), 0);
-	atomic_operations::atomic_var_set(&(this->capture.current_timestamp_ticks), 0);
-	atomic_operations::atomic_var_set(&(this->capture.previous_timestamp_ticks), 0);
-	atomic_operations::atomic_var_set(&(this->capture_copy.current_timestamp_ticks), 0);
-	atomic_operations::atomic_var_set(&(this->capture_copy.previous_timestamp_ticks), 0);
+	atomic_set(&(this->system.new_capture), 0);
+	atomic_set(&(this->system.capture_reading), 0);
+	atomic_set(&(this->capture.current_timestamp_ticks), 0);
+	atomic_set(&(this->capture.previous_timestamp_ticks), 0);
+	atomic_set(&(this->capture_copy.current_timestamp_ticks), 0);
+	atomic_set(&(this->capture_copy.previous_timestamp_ticks), 0);
 
 	this->system.capture_running = false;
 	this->error = {input_capture_controller::ErrorCode::Ok, 0};
@@ -133,16 +133,16 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 		return this->error.code;
 	}
 
-	if (!atomic_operations::atomic_var_get(&(this->system.new_capture))) {
+	if (!atomic_get(&(this->system.new_capture))) {
 		this->error = {input_capture_controller::ErrorCode::NewCaptureUnavailable, 0};
 		return this->error.code;
 	}
 
-	atomic_operations::atomic_var_set(&(this->system.capture_reading), 1);
-	atomic_operations::atomic_var_set(&(this->system.new_capture), 0);
+	atomic_set(&(this->system.capture_reading), 1);
+	atomic_set(&(this->system.new_capture), 0);
 
-	current_timestamp_ticks = atomic_operations::atomic_var_get(&(this->capture_copy.current_timestamp_ticks));
-	previous_timestamp_ticks = atomic_operations::atomic_var_get(&(this->capture_copy.previous_timestamp_ticks));
+	current_timestamp_ticks = atomic_get(&(this->capture_copy.current_timestamp_ticks));
+	previous_timestamp_ticks = atomic_get(&(this->capture_copy.previous_timestamp_ticks));
 
 	if (current_timestamp_ticks >= previous_timestamp_ticks) {
 		capture_period_ns = counter_ticks_to_ns(this->counter.timer.dev, current_timestamp_ticks - previous_timestamp_ticks);
@@ -152,7 +152,7 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 		capture_period_ns = counter_ticks_to_ns(this->counter.timer.dev, current_timestamp_ticks + (this->counter.resolution_ticks - previous_timestamp_ticks));
 	}
 
-	atomic_operations::atomic_var_set(&(this->system.capture_reading), 0);
+	atomic_set(&(this->system.capture_reading), 0);
 	this->error = {input_capture_controller::ErrorCode::Ok, 0};
 	return this->error.code;
 }

@@ -1,9 +1,9 @@
 #ifndef INPUT_CAPTURE_CONTROLLER_HPP
 #define INPUT_CAPTURE_CONTROLLER_HPP
 
-#include "atomic_operations.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <zephyr/sys/atomic.h>
 #include <zephyr/drivers/counter.h>
 
 #define INPUT_CAPTURE_TIMER_DEVICE(alias) { \
@@ -62,16 +62,16 @@ namespace input_capture_controller {
 			};
 
 			struct CaptureState {
-				atomic_operations::atomic32_t current_timestamp_ticks = ATOMIC_VAR_INIT(0);
-				atomic_operations::atomic32_t previous_timestamp_ticks = ATOMIC_VAR_INIT(0);
+				atomic_t current_timestamp_ticks = ATOMIC_INIT(0);
+				atomic_t previous_timestamp_ticks = ATOMIC_INIT(0);
 			};
 
 			struct SystemState {
 				bool capture_ready = false;
 				bool capture_running = false;
-				atomic_operations::atomic32_t first_capture = ATOMIC_VAR_INIT(0);
-				atomic_operations::atomic32_t new_capture = ATOMIC_VAR_INIT(0);
-				atomic_operations::atomic32_t capture_reading = ATOMIC_VAR_INIT(0);
+				atomic_t first_capture = ATOMIC_INIT(0);
+				atomic_t new_capture = ATOMIC_INIT(0);
+				atomic_t capture_reading = ATOMIC_INIT(0);
 			};
 
 			input_capture_controller::InputCaptureSignal::CounterState counter;
