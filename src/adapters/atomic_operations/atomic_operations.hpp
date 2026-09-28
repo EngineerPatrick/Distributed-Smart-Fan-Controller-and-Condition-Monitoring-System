@@ -3,6 +3,8 @@
 
 #include <zephyr/sys/atomic.h>
 
+#define ATOMIC_VAR_INIT(value) ATOMIC_INIT(value)
+
 namespace atomic_operations {
 
 	typedef atomic_t atomic32_t;

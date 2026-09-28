@@ -56,25 +56,27 @@ namespace input_capture_controller {
 
 		private:
 
+			struct CounterState {
+				const counter_capture_dt_spec timer = {};
+				std::uint64_t resolution_ticks = 0;
+			};
+
 			struct CaptureState {
-				atomic_operations::atomic32_t current_timestamp_ticks;
-				atomic_operations::atomic32_t previous_timestamp_ticks;
+				atomic_operations::atomic32_t current_timestamp_ticks = ATOMIC_VAR_INIT(0);
+				atomic_operations::atomic32_t previous_timestamp_ticks = ATOMIC_VAR_INIT(0);
 			};
 
 			struct SystemState {
 				bool capture_ready = false;
 				bool capture_running = false;
-				atomic_operations::atomic32_t new_capture;
-				atomic_operations::atomic32_t capture_reading;
-			};
-
-			struct CounterState {
-				const counter_capture_dt_spec timer = {};
-				std::uint32_t resolution_ticks = 0;
+				atomic_operations::atomic32_t first_capture = ATOMIC_VAR_INIT(0);
+				atomic_operations::atomic32_t new_capture = ATOMIC_VAR_INIT(0);
+				atomic_operations::atomic32_t capture_reading = ATOMIC_VAR_INIT(0);
 			};
 
 			input_capture_controller::InputCaptureSignal::CounterState counter;
 			input_capture_controller::InputCaptureSignal::CaptureState capture;
+			input_capture_controller::InputCaptureSignal::CaptureState capture_copy;
 			input_capture_controller::InputCaptureSignal::SystemState system;
 			input_capture_controller::ErrorState error;
 
