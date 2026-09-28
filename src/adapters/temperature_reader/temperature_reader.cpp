@@ -68,17 +68,17 @@ temperature_reader::ErrorCode temperature_reader::TemperatureSignal::value_read(
 
 	/*
 	*
-	*	This formula is the inverse of the one provided by Zephyr's API to calculate Q31 data: Q31 * 2^16 / 2^31
+	*	This formula is the inverse of the one provided by Zephyr's API to calculate Q31 data: Q31 * 2^(shift) / 2^31
 	*
 	*/
 	if (this->reading.internal_data.shift >= 0) {
-		this->reading.temp_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->reading.internal_data.readings[0].temperature) * 100
-		<< this->reading.internal_data.shift) >> 31);
+		this->reading.temp_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->reading.internal_data.readings[0].temperature) *
+		100 * (1 << this->reading.internal_data.shift)) >> 31);
 	}
 
 	else {
-		this->reading.temp_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->reading.internal_data.readings[0].temperature) * 100)
-		>> (31 + (-this->reading.internal_data.shift)));
+		this->reading.temp_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->reading.internal_data.readings[0].temperature) *
+		100) >> (31 + (-this->reading.internal_data.shift)));
 	}
 
 	temp_c_x100 = this->reading.temp_c_x100;
