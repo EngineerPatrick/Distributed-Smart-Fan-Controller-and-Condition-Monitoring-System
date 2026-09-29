@@ -13,6 +13,7 @@
 
 #include "temperature_reader.hpp"
 #include "temperature_reader_interface.hpp"
+#include <cstdint>
 #include <zephyr/device.h>
 #include <zephyr/rtio/rtio.h>
 #include <zephyr/drivers/sensor.h>
@@ -44,7 +45,7 @@ sensor{{temperature_sensor_device.device_ptr},
 {temperature_sensor_device.ctx_ptr},
 {this->init_operations(temperature_sensor_device.device_ptr)}} {}
 
-temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::value_read(std::int16_t& temp_c_x100) {
+temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::value_read(int& temp_c_x100) {
 	std::uint8_t rx_buff[128];
 	std::uint32_t fit = 0;
 
@@ -73,12 +74,12 @@ temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::v
 	*
 	*/
 	if (this->reading.internal_data.shift >= 0) {
-		this->reading.temp_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->reading.internal_data.readings[0].temperature) *
+		this->reading.temp_c_x100 = static_cast<int>((static_cast<long long int>(this->reading.internal_data.readings[0].temperature) *
 		100 * (1 << this->reading.internal_data.shift)) >> 31);
 	}
 
 	else {
-		this->reading.temp_c_x100 = static_cast<std::int16_t>((static_cast<std::int64_t>(this->reading.internal_data.readings[0].temperature) *
+		this->reading.temp_c_x100 = static_cast<int>((static_cast<long long int>(this->reading.internal_data.readings[0].temperature) *
 		100) >> (31 + (-this->reading.internal_data.shift)));
 	}
 

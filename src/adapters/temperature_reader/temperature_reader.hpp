@@ -14,7 +14,6 @@
 #define TEMPERATURE_READER_HPP
 
 #include "temperature_reader_interface.hpp"
-#include <cstdint>
 #include <cstddef>
 #include <zephyr/device.h>
 #include <zephyr/rtio/rtio.h>
@@ -58,7 +57,7 @@ namespace temperature_reader {
 			TemperatureSignal& operator=(const TemperatureSignal&) = delete;
 			TemperatureSignal& operator=(TemperatureSignal&&) = delete;
 
-			temperature_reader_interface::ErrorCode value_read(std::int16_t& temp_c_x100) override;
+			temperature_reader_interface::ErrorCode value_read(int& temp_c_x100) override;
 
 			[[nodiscard("Called error getter and discarded its return value")]]
 			temperature_reader_interface::ErrorState error_state_get() const override;
@@ -78,7 +77,7 @@ namespace temperature_reader {
 
 			struct ReadingState {
 				struct sensor_q31_data internal_data = {};
-				std::int16_t temp_c_x100 = 0;
+				int temp_c_x100 = 0;
 			};
 
 			temperature_reader_interface::ErrorState error;

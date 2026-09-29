@@ -3,7 +3,6 @@
 
 #include "pwm_controller_interface.hpp"
 #include "input_capture_controller_interface.hpp"
-#include <cstdint>
 
 #define PERIOD_NS_FOR_25KHZ 40000UL								//25 KHz Frequency
 
@@ -50,7 +49,7 @@ namespace fan_controller {
 
 			struct PwmState {
 				pwm_controller_interface::PwmSignalInterface& signal;
-				std::uint64_t period_ns = 0;
+				unsigned long long int period_ns = 0;
 				unsigned int duty_cycle_x100 = 0;
 			};
 

@@ -14,7 +14,6 @@
 #define DISPLAY_UI_HPP
 
 #include "grid_printer_interface.hpp"
-#include <cstdint>
 
 namespace display_ui {
 
@@ -28,8 +27,8 @@ namespace display_ui {
 	};
 
 	display_ui::ErrorCode fixed_ui_print(grid_printer_interface::DisplayGridInterface& readings_grid);
-	display_ui::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10);
-	display_ui::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm);
+	display_ui::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, int temp_c_x10);
+	display_ui::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, unsigned int speed_rpm);
 }
 
 #endif

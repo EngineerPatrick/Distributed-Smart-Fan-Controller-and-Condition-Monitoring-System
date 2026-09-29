@@ -1,8 +1,6 @@
 #ifndef INPUT_CAPTURE_CONTROLLER_INTERFACE_HPP
 #define INPUT_CAPTURE_CONTROLLER_INTERFACE_HPP
 
-#include <cstdint>
-
 #define INPUT_CAPTURE_TIMER_DEVICE(alias) { \
 	DEVICE_DT_GET(DT_COUNTER_CAPTURES_CTLR_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
 	DT_COUNTER_CAPTURES_FLAGS_BY_IDX(DT_ALIAS(alias), counter_captures, 0), \
@@ -36,7 +34,7 @@ namespace input_capture_controller_interface {
 			virtual input_capture_controller_interface::ErrorCode capture_start() = 0;
 			virtual input_capture_controller_interface::ErrorCode capture_stop() = 0;
 
-			virtual input_capture_controller_interface::ErrorCode capture_period_ns_get(std::uint64_t& capture_period_ns) = 0;
+			virtual input_capture_controller_interface::ErrorCode capture_period_ns_get(unsigned long long int& capture_period_ns) = 0;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			virtual input_capture_controller_interface::ErrorState error_state_get() const = 0;
 

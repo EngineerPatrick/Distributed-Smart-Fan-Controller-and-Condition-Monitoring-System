@@ -14,8 +14,6 @@
 #define PWM_CONTROLLER_HPP
 
 #include "pwm_controller_interface.hpp"
-#include <cstddef>
-#include <cstdint>
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
 
@@ -37,7 +35,7 @@ namespace pwm_controller {
 			PwmSignal& operator=(const PwmSignal&) = delete;
 			PwmSignal& operator=(PwmSignal&&) = delete;
 
-			pwm_controller_interface::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns) override;
+			pwm_controller_interface::ErrorCode start(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) override;
 			pwm_controller_interface::ErrorCode stop() override;
 
 			[[nodiscard("Called error getter and discarded its return value")]]
@@ -51,9 +49,8 @@ namespace pwm_controller {
 			};
 
 			struct WaveformState {
-				std::size_t period_ns = 0;
-				std::size_t pulse_width_ns = 0;
-				std::uint8_t duty_cycle_x100 = 0;
+				unsigned long long int period_ns = 0;
+				unsigned long long int pulse_width_ns = 0;
 			};
 
 			struct pwm_dt_spec timer = {};

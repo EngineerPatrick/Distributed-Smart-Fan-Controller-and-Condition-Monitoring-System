@@ -1,7 +1,6 @@
 #include "fan_controller.hpp"
 #include "pwm_controller_interface.hpp"
 #include "input_capture_controller_interface.hpp"
-#include <cstdint>
 
 fan_controller::FourWireFan::FourWireFan(
 	pwm_controller_interface::PwmSignalInterface& fan_pwm,
@@ -78,7 +77,7 @@ fan_controller::ErrorCode fan_controller::FourWireFan::stop() {
 }
 
 fan_controller::ErrorCode fan_controller::FourWireFan::speed_measure(unsigned int& measured_speed_rpm) {
-	std::uint64_t tachometer_period_ns = 0;
+	unsigned long long int tachometer_period_ns = 0;
 
 	if (!this->system.fan_running) {
 		this->error = fan_controller::ErrorCode::FanNotRunning;
@@ -90,7 +89,7 @@ fan_controller::ErrorCode fan_controller::FourWireFan::speed_measure(unsigned in
 		return this->error;
 	}
 
-	this->tachometer.speed_rpm = static_cast<std::uint16_t>(60000000000ULL / (tachometer_period_ns * 2));
+	this->tachometer.speed_rpm = static_cast<unsigned int>(60000000000ULL / (tachometer_period_ns * 2));
 	measured_speed_rpm = this->tachometer.speed_rpm;
 
 	this->error = fan_controller::ErrorCode::Ok;

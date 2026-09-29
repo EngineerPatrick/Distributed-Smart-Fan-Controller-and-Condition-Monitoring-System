@@ -62,27 +62,27 @@ display_ui::ErrorCode display_ui::fixed_ui_print(grid_printer_interface::Display
 	return display_ui::ErrorCode::Ok;
 }
 
-static void digits_extract(std::int16_t full_value, std::array<std::uint8_t, 3>& digits) {
-	std::uint8_t divisor = 100;
+static void digits_extract(int full_value, std::array<unsigned int, 3>& digits) {
+	unsigned int divisor = 100;
 
 	full_value = (full_value < 0) ? full_value * -1 : full_value;
 
 	for (std::size_t digit_index = 0; digit_index < digits.size(); digit_index++) {
-		digits.at(digit_index) = (!digit_index) ? static_cast<std::uint8_t>(full_value / divisor) : static_cast<std::uint8_t>((full_value / divisor) % 10);
+		digits.at(digit_index) = (!digit_index) ? static_cast<unsigned int>(full_value / divisor) : static_cast<unsigned int>((full_value / divisor) % 10);
 		divisor /= 10;
 	}
 }
 
-static void digits_extract(std::uint16_t full_value, std::array<std::uint8_t, 4>& digits) {
-	std::uint16_t divisor = 1000;
+static void digits_extract(unsigned int full_value, std::array<unsigned int, 4>& digits) {
+	unsigned int divisor = 1000;
 
 	for (std::size_t digit_index = 0; digit_index < digits.size(); digit_index++) {
-		digits.at(digit_index) = (!digit_index) ? static_cast<std::uint8_t>(full_value / divisor) : static_cast<std::uint8_t>((full_value / divisor) % 10);
+		digits.at(digit_index) = (!digit_index) ? static_cast<unsigned int>(full_value / divisor) : static_cast<unsigned int>((full_value / divisor) % 10);
 		divisor /= 10;
 	}
 }
 
-static std::string_view digit_to_str_view(std::uint8_t digit) {
+static std::string_view digit_to_str_view(unsigned int digit) {
 
 	switch (digit) {
 
@@ -131,7 +131,7 @@ static std::string_view digit_to_str_view(std::uint8_t digit) {
 }
 
 static display_ui::ErrorCode empty_digit_handler(
-	std::uint8_t& digit,
+	unsigned int& digit,
 	const std::size_t row_idx,
 	const std::size_t column_idx,
 	bool& digit_flag,
@@ -160,9 +160,9 @@ static display_ui::ErrorCode empty_digit_handler(
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10) {
+display_ui::ErrorCode display_ui::temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, int temp_c_x10) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
-	std::array<std::uint8_t, 3> digits = {0, 0, 0};
+	std::array<unsigned int, 3> digits = {0, 0, 0};
 
 	if (temp_c_x10 > 999 || temp_c_x10 < -999) {
 		return display_ui::ErrorCode::ParamTemp;
@@ -213,9 +213,9 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer_interface::Displ
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm) {
+display_ui::ErrorCode display_ui::speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, unsigned int speed_rpm) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
-	std::array<std::uint8_t, 4> digits = {0, 0, 0, 0};
+	std::array<unsigned int, 4> digits = {0, 0, 0, 0};
 
 	if (speed_rpm > 9999) {
 		return display_ui::ErrorCode::ParamSpeed;
