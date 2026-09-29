@@ -19,13 +19,13 @@
 #define FONT_NAME_IDX_1 Medium
 #define FONT_NAME_IDX_2 Large
 
-#define DEFAULT_FONT grid_printer::FontName::FONT_NAME_IDX_0
+#define DEFAULT_FONT grid_printer_interface::FontName::FONT_NAME_IDX_0
 
 #define FONT_NAME_INIT FONT_NAME_IDX_0, FONT_NAME_IDX_1, FONT_NAME_IDX_2
 
-#define FONT_LIST_INIT grid_printer::FontName::FONT_NAME_IDX_0, \
-					   grid_printer::FontName::FONT_NAME_IDX_1, \
-					   grid_printer::FontName::FONT_NAME_IDX_2
+#define FONT_LIST_INIT grid_printer_interface::FontName::FONT_NAME_IDX_0, \
+					   grid_printer_interface::FontName::FONT_NAME_IDX_1, \
+					   grid_printer_interface::FontName::FONT_NAME_IDX_2
 
 #endif
 
@@ -75,7 +75,7 @@
 *
 *	@brief		Name of the default font to set in the CFB abstraction module
 *
-*	@details	The user is responsible to insert one of the names previously created with the prefix grid_printer::FontName::
+*	@details	The user is responsible to insert one of the names previously created with the prefix grid_printer_interface::FontName::
 *
 */
 
@@ -96,7 +96,7 @@
 *	@brief		Initializer list for the fonts array in the CFB abstraction module
 *
 *	@details	The user is responsible to insert all the created names by separating each one with a comma and a space
-*				and with the prefix grid_printer::FontName::
+*				and with the prefix grid_printer_interface::FontName::
 *
 *	@warning	The user is responsible to order the names in this initializer list so that the index of the fonts in
 *				Zephyr's own system corresponds to the index of the fonts in this list

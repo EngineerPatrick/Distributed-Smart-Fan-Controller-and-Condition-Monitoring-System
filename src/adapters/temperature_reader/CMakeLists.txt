@@ -8,4 +8,5 @@ target_sources(app
 		TYPE HEADERS
 		FILES
 		temperature_reader.hpp
+		temperature_reader_interface.hpp
 )
