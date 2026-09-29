@@ -6,8 +6,8 @@
 	aliases {
 		error-led = &red_led;
 		readings-display = &display0;
-		temp-sensor = &sensor0;
-		fan-pwm = &fan0;
+		room-temp-sensor = &sensor0;
+		control-fan = &fan0;
 	};
 
 	leds {
