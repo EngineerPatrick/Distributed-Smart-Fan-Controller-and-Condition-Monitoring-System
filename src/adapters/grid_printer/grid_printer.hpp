@@ -1,6 +1,7 @@
 #ifndef GRID_PRINTER_HPP
 #define GRID_PRINTER_HPP
 
+#include "grid_printer_interface.hpp"
 #include "fonts_adapter.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -10,57 +11,31 @@
 
 namespace grid_printer {
 
-	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
-		Ok,
-		DeviceUnready,
-		CfbUnready,
-		TextUnready,
-		DisplayResolution,
-		ParamGridCoordinates,
-		ParamStringLength,
-		ParamFontIndex,
-		ZCfbInit,
-		ZCfbFontSet,
-		ZCfbFontSizeGet,
-		ZCfbFontKerningSet,
-		ZCfbRamClear,
-		ZCfbStringWrite,
-		ZCfbRamFlush
-	};
-
-	struct ErrorState {
-		ErrorCode code = grid_printer::ErrorCode::Ok;
-		int return_value = 0;
-		std::size_t row_idx = 0;
-		std::size_t column_idx = 0;
-	};
-
-	enum class FontName {FONT_NAME_INIT};
-
-	class GridPrinter {
+	class DisplayGrid : public grid_printer_interface::DisplayGridInterface {
 
 		public:
 
-			explicit GridPrinter(const struct device* const display_device_ptr);
-			~GridPrinter();
+			explicit DisplayGrid(const struct device* const display_device_ptr);
+			~DisplayGrid() override;
 
 			/*
 			*
 			*	Copy/move constructors/operators are deleted to prevent the creation of another instance of this class through these operations
 			*
 			*/
-			GridPrinter(const GridPrinter&) = delete;
-			GridPrinter(GridPrinter&&) = delete;
-			GridPrinter& operator=(const GridPrinter&) = delete;
-			GridPrinter& operator=(GridPrinter&&) = delete;
+			DisplayGrid(const DisplayGrid&) = delete;
+			DisplayGrid(DisplayGrid&&) = delete;
+			DisplayGrid& operator=(const DisplayGrid&) = delete;
+			DisplayGrid& operator=(DisplayGrid&&) = delete;
 
-			grid_printer::ErrorCode font_set(grid_printer::FontName font_name);
+			grid_printer_interface::ErrorCode font_set(grid_printer_interface::FontName font_name) override;
 
-			grid_printer::ErrorCode cells_clear();
-			grid_printer::ErrorCode cells_string_write(const std::string_view input_string, const std::size_t row_idx, const std::size_t column_idx);
-			grid_printer::ErrorCode cells_print();
+			grid_printer_interface::ErrorCode cells_clear() override;
+			grid_printer_interface::ErrorCode cells_string_write(const std::string_view input_string, const std::size_t row_idx, const std::size_t column_idx) override;
+			grid_printer_interface::ErrorCode cells_print() override;
 
-			[[nodiscard("Called error getter and discarded its return value")]] grid_printer::ErrorState error_state_get() const;
+			[[nodiscard("Called error getter and discarded its return value")]]
+			grid_printer_interface::ErrorState error_state_get() const override;
 
 		private:
 
@@ -87,17 +62,17 @@ namespace grid_printer {
 				std::uint8_t height_px = 0;
 			};
 
-			grid_printer::ErrorState error;
-			grid_printer::GridPrinter::SystemState system;
-			grid_printer::GridPrinter::DisplayState display;
-			grid_printer::GridPrinter::GridState grid;
+			grid_printer_interface::ErrorState error;
+			grid_printer::DisplayGrid::SystemState system;
+			grid_printer::DisplayGrid::DisplayState display;
+			grid_printer::DisplayGrid::GridState grid;
 
-			std::array<grid_printer::FontName, FONTS_NUMBER> font_list = {FONT_LIST_INIT};
+			std::array<grid_printer_interface::FontName, FONTS_NUMBER> font_list = {FONT_LIST_INIT};
 
-			grid_printer::GridPrinter::FontState font;
+			grid_printer::DisplayGrid::FontState font;
 
 			[[nodiscard("Internal error: necessary struct discarded")]]
-			grid_printer::GridPrinter::DisplayState init_operations(const struct device* const display_device_ptr);
+			grid_printer::DisplayGrid::DisplayState init_operations(const struct device* const display_device_ptr);
 	};
 }
 

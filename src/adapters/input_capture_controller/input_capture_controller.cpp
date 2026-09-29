@@ -1,5 +1,5 @@
 #include "input_capture_controller.hpp"
-#include <cstddef>
+#include "input_capture_controller_interface.hpp"
 #include <cstdint>
 #include <zephyr/device.h>
 #include <zephyr/sys/atomic.h>
@@ -43,38 +43,38 @@ counter{
 } {
 
 	if (!device_is_ready(this->counter.timer.dev)) {
-		this->error = {input_capture_controller::ErrorCode::DeviceUnready, 0};
+		this->error = {input_capture_controller_interface::ErrorCode::DeviceUnready, 0};
 		return;
 	}
 
 	this->error.return_value = counter_capture_configure_dt(&(this->counter.timer), input_capture_controller::InputCaptureSignal::capture_callback, this);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller::ErrorCode::ZCounterCaptureConfigure;
+		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterCaptureConfigure;
 		return;
 	}
 
 	this->error.return_value = counter_enable_capture_dt(&(this->counter.timer));
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller::ErrorCode::ZCounterCaptureEnable;
+		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterCaptureEnable;
 		return;
 	}
 
 	this->system.capture_ready = true;
-	this->error = {input_capture_controller::ErrorCode::Ok, 0};
+	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
 }
 
-input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal::capture_start() {
+input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_start() {
 
 	if (!this->system.capture_ready) {
-		this->error = {input_capture_controller::ErrorCode::CaptureUnready, 0};
+		this->error = {input_capture_controller_interface::ErrorCode::CaptureUnready, 0};
 		return this->error.code;
 	}
 
 	if (this->system.capture_running) {
 
-		if (this->capture_stop() != input_capture_controller::ErrorCode::Ok) {
+		if (this->capture_stop() != input_capture_controller_interface::ErrorCode::Ok) {
 			return this->error.code;
 		}
 	}
@@ -82,33 +82,33 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 	this->error.return_value = counter_start(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller::ErrorCode::ZCounterStart;
+		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterStart;
 		return this->error.code;
 	}
 
 	this->system.capture_running = true;
-	this->error = {input_capture_controller::ErrorCode::Ok, 0};
+	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal::capture_stop() {
+input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_stop() {
 
 	if (!this->system.capture_running) {
-		this->error = {input_capture_controller::ErrorCode::CaptureNotRunning, 0};
+		this->error = {input_capture_controller_interface::ErrorCode::CaptureNotRunning, 0};
 		return this->error.code;
 	}
 
 	this->error.return_value = counter_stop(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller::ErrorCode::ZCounterStop;
+		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterStop;
 		return this->error.code;
 	}
 
 	this->error.return_value = counter_reset(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller::ErrorCode::ZCounterReset;
+		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterReset;
 		return this->error.code;
 	}
 
@@ -120,21 +120,21 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 	atomic_set(&(this->capture_copy.previous_timestamp_ticks), 0);
 
 	this->system.capture_running = false;
-	this->error = {input_capture_controller::ErrorCode::Ok, 0};
+	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal::capture_period_ns_get(std::uint64_t& capture_period_ns) {
+input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_period_ns_get(std::uint64_t& capture_period_ns) {
 	std::uint32_t current_timestamp_ticks = 0;
 	std::uint32_t previous_timestamp_ticks = 0;
 
 	if (!this->system.capture_running) {
-		this->error = {input_capture_controller::ErrorCode::CaptureNotRunning, 0};
+		this->error = {input_capture_controller_interface::ErrorCode::CaptureNotRunning, 0};
 		return this->error.code;
 	}
 
 	if (!atomic_get(&(this->system.new_capture))) {
-		this->error = {input_capture_controller::ErrorCode::NewCaptureUnavailable, 0};
+		this->error = {input_capture_controller_interface::ErrorCode::NewCaptureUnavailable, 0};
 		return this->error.code;
 	}
 
@@ -153,10 +153,10 @@ input_capture_controller::ErrorCode input_capture_controller::InputCaptureSignal
 	}
 
 	atomic_set(&(this->system.capture_reading), 0);
-	this->error = {input_capture_controller::ErrorCode::Ok, 0};
+	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-input_capture_controller::ErrorState input_capture_controller::InputCaptureSignal::error_state_get() const {
+input_capture_controller_interface::ErrorState input_capture_controller::InputCaptureSignal::error_state_get() const {
 	return this->error;
 }

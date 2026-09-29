@@ -8,4 +8,5 @@ target_sources(app
 		TYPE HEADERS
 		FILES
 		pwm_controller.hpp
+		pwm_controller_interface.hpp
 )

@@ -6,14 +6,14 @@
 *
 *	@details	Prints the UI on the dsplay
 *
-*				Accesses an instance of GridPrinter
+*				Accesses an instance of DisplayGridInterface
 *
 */
 
 #ifndef DISPLAY_UI_HPP
 #define DISPLAY_UI_HPP
 
-#include "grid_printer.hpp"
+#include "grid_printer_interface.hpp"
 #include <cstdint>
 
 namespace display_ui {
@@ -27,9 +27,9 @@ namespace display_ui {
 		ParamSpeed
 	};
 
-	display_ui::ErrorCode fixed_ui_print(grid_printer::GridPrinter& readings_grid);
-	display_ui::ErrorCode temp_value_print(grid_printer::GridPrinter& readings_grid, std::int16_t temp_c_x10);
-	display_ui::ErrorCode speed_value_print(grid_printer::GridPrinter& readings_grid, std::uint16_t speed_rpm);
+	display_ui::ErrorCode fixed_ui_print(grid_printer_interface::DisplayGridInterface& readings_grid);
+	display_ui::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10);
+	display_ui::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm);
 }
 
 #endif
@@ -44,57 +44,57 @@ namespace display_ui {
 
 /**
 *
-*	@fn 		display_ui::ErrorCode fixed_ui_print(grid_printer::GridPrinter& readings_grid)
+*	@fn 		display_ui::ErrorCode fixed_ui_print(grid_printer_interface::DisplayGridInterface& readings_grid)
 *
 *	@brief		Prints the fixed part of the UI on the display
 *
-*	@param[in]	readings_grid							Instance of the GridPrinter class
+*	@param[in]	readings_grid							Instance of the DisplayGridInterface class
 *
-*	@retval		DisplayOperation				If an error occurs whith the GridPrinter class
+*	@retval		DisplayOperation				If an error occurs whith the DisplayGridInterface class
 *	@retval		Ok								If no error occurs
 *
-*	@pre		readings_grid must be a valid instance of the GridPrinter class correctly initialized
-*	@post		If an error occurs whith the GridPrinter class then changes are left on RAM's content
+*	@pre		readings_grid must be a valid instance of the DisplayGridInterface class correctly initialized
+*	@post		If an error occurs whith the DisplayGridInterface class then changes are left on RAM's content
 *	@post		On success the title and the units of measurement are printed on the display
 *
 */
 
 /**
 *
-*	@fn 		display_ui::ErrorCode temp_value_print(grid_printer::GridPrinter& readings_grid, std::int16_t temp_c_x10)
+*	@fn 		display_ui::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10)
 *
 *	@brief		Prints the value of the tempearature reading on the display
 *
-*	@param[in]	readings_grid							Instance of the GridPrinter class
+*	@param[in]	readings_grid							Instance of the DisplayGridInterface class
 *	@param[in]	temp_c_x10						Value of the temperature reading in tenth of Celsius degrees
 *
 *	@retval		ParamTemp						If the value of the temperature is out of range
-*	@retval		DisplayOperation				If an error occurs whith the GridPrinter class
+*	@retval		DisplayOperation				If an error occurs whith the DisplayGridInterface class
 *	@retval		Ok								If no error occurs
 *
-*	@pre		readings_grid must be a valid instance of the GridPrinter class correctly initialized
+*	@pre		readings_grid must be a valid instance of the DisplayGridInterface class correctly initialized
 *	@post		If the value of the temperature is out of range then RAM's content are left unchanged
-*	@post		If an error occurs whith the GridPrinter class then changes are left on RAM's content
+*	@post		If an error occurs whith the DisplayGridInterface class then changes are left on RAM's content
 *	@post		On success the temperature value is printed on the display
 *
 */
 
 /**
 *
-*	@fn 		display_ui::ErrorCode speed_value_print(grid_printer::GridPrinter& readings_grid, std::uint16_t speed_rpm)
+*	@fn 		display_ui::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm)
 *
 *	@brief		Prints the value of the tempearature reading on the display
 *
-*	@param[in]	readings_grid							Instance of the GridPrinter class
+*	@param[in]	readings_grid							Instance of the DisplayGridInterface class
 *	@param[in]	speed_rpm						Value of the speed reading in RPM
 *
 *	@retval		ParamSpeed						If the value of the speed is out of range
-*	@retval		DisplayOperation				If an error occurs whith the GridPrinter class
+*	@retval		DisplayOperation				If an error occurs whith the DisplayGridInterface class
 *	@retval		Ok								If no error occurs
 *
-*	@pre		readings_grid must be a valid instance of the GridPrinter class correctly initialized
+*	@pre		readings_grid must be a valid instance of the DisplayGridInterface class correctly initialized
 *	@post		If the value of the speed is out of range then RAM's content are left unchanged
-*	@post		If an error occurs whith the GridPrinter class then changes are left on RAM's content
+*	@post		If an error occurs whith the DisplayGridInterface class then changes are left on RAM's content
 *	@post		On success the speed value is printed on the display
 *
 */

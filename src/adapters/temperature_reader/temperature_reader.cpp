@@ -12,6 +12,7 @@
 */
 
 #include "temperature_reader.hpp"
+#include "temperature_reader_interface.hpp"
 #include <zephyr/device.h>
 #include <zephyr/rtio/rtio.h>
 #include <zephyr/drivers/sensor.h>
@@ -21,19 +22,19 @@ const struct sensor_decoder_api* const temperature_reader::TemperatureSignal::in
 	const struct sensor_decoder_api* decoder = {};
 
 	if (!device_is_ready(temperature_reader_ptr)) {
-		this->error = {temperature_reader::ErrorCode::DeviceUnready, 0};
+		this->error = {temperature_reader_interface::ErrorCode::DeviceUnready, 0};
 		return nullptr;
 	}
 
 	this->error.return_value = sensor_get_decoder(temperature_reader_ptr, &decoder);
 
 	if (this->error.return_value != 0) {
-		this->error.code = temperature_reader::ErrorCode::ZSensorDecoderGet;
+		this->error.code = temperature_reader_interface::ErrorCode::ZSensorDecoderGet;
 		return nullptr;
 	}
 
 	this->system.reading_ready = true;
-	this->error = {temperature_reader::ErrorCode::Ok, 0};
+	this->error = {temperature_reader_interface::ErrorCode::Ok, 0};
 	return decoder;
 }
 
@@ -43,26 +44,26 @@ sensor{{temperature_sensor_device.device_ptr},
 {temperature_sensor_device.ctx_ptr},
 {this->init_operations(temperature_sensor_device.device_ptr)}} {}
 
-temperature_reader::ErrorCode temperature_reader::TemperatureSignal::value_read(std::int16_t& temp_c_x100) {
+temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::value_read(std::int16_t& temp_c_x100) {
 	std::uint8_t rx_buff[128];
 	std::uint32_t fit = 0;
 
 	if (!this->system.reading_ready) {
-		this->error = {temperature_reader::ErrorCode::ReadingUnready, 0};
+		this->error = {temperature_reader_interface::ErrorCode::ReadingUnready, 0};
 		return this->error.code;
 	}
 
 	this->error.return_value = sensor_read(this->sensor.iodev_ptr, this->sensor.ctx_ptr, rx_buff, 128);
 
 	if (this->error.return_value != 0) {
-		this->error.code = temperature_reader::ErrorCode::ZSensorRead;
+		this->error.code = temperature_reader_interface::ErrorCode::ZSensorRead;
 		return this->error.code;
 	}
 
 	this->error.return_value = this->sensor.decoder->decode(rx_buff, (struct sensor_chan_spec) {SENSOR_CHAN_AMBIENT_TEMP, 0}, &fit, 1, &(this->reading.internal_data));
 
 	if (this->error.return_value < 1) {
-		this->error.code = temperature_reader::ErrorCode::ZSensorDecode;
+		this->error.code = temperature_reader_interface::ErrorCode::ZSensorDecode;
 		return this->error.code;
 	}
 
@@ -83,10 +84,10 @@ temperature_reader::ErrorCode temperature_reader::TemperatureSignal::value_read(
 
 	temp_c_x100 = this->reading.temp_c_x100;
 
-	this->error = {temperature_reader::ErrorCode::Ok, 0};
+	this->error = {temperature_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-temperature_reader::ErrorState temperature_reader::TemperatureSignal::error_state_get() const {
+temperature_reader_interface::ErrorState temperature_reader::TemperatureSignal::error_state_get() const {
 	return this->error;
 }

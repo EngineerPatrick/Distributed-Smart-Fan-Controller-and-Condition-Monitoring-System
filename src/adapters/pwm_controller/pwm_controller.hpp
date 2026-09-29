@@ -13,6 +13,7 @@
 #ifndef PWM_CONTROLLER_HPP
 #define PWM_CONTROLLER_HPP
 
+#include "pwm_controller_interface.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <zephyr/device.h>
@@ -20,21 +21,7 @@
 
 namespace pwm_controller {
 
-	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
-		Ok,
-		DeviceUnready,
-		PwmUnready,
-		ParamWaveform,
-		PwmNotRunning,
-		ZPwmSet
-	};
-
-	struct ErrorState {
-		pwm_controller::ErrorCode code = pwm_controller::ErrorCode::Ok;
-		int return_value = 0;
-	};
-
-	class PwmSignal {
+	class PwmSignal : public pwm_controller_interface::PwmSignalInterface {
 
 		public:
 
@@ -50,10 +37,11 @@ namespace pwm_controller {
 			PwmSignal& operator=(const PwmSignal&) = delete;
 			PwmSignal& operator=(PwmSignal&&) = delete;
 
-			pwm_controller::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns);
-			pwm_controller::ErrorCode stop();
+			pwm_controller_interface::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns) override;
+			pwm_controller_interface::ErrorCode stop() override;
 
-			[[nodiscard("Called error getter and discarded its return value")]] pwm_controller::ErrorState error_state_get() const;
+			[[nodiscard("Called error getter and discarded its return value")]]
+			pwm_controller_interface::ErrorState error_state_get() const override;
 
 		private:
 
@@ -70,7 +58,7 @@ namespace pwm_controller {
 
 			struct pwm_dt_spec timer = {};
 
-			pwm_controller::ErrorState error;
+			pwm_controller_interface::ErrorState error;
 			pwm_controller::PwmSignal::SystemState system;
 			pwm_controller::PwmSignal::WaveformState waveform;
 	};
@@ -80,7 +68,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@enum		pwm_controller::ErrorCode
+*	@enum		pwm_controller_interface::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -90,7 +78,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@struct		pwm_controller::ErrorState
+*	@struct		pwm_controller_interface::ErrorState
 *
 *	@brief		Data structure for all types of errors
 *
@@ -126,7 +114,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns)
+*	@fn			pwm_controller_interface::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns)
 *
 *	@brief		Method to start the PWM with specific waveform parameters
 *
@@ -147,7 +135,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller::ErrorCode stop()
+*	@fn			pwm_controller_interface::ErrorCode stop()
 *
 *	@brief		Method to stop the PWM
 *
@@ -161,7 +149,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller::ErrorState error_state_get() const
+*	@fn			pwm_controller_interface::ErrorState error_state_get() const
 *
 *	@brief		Method to obtain the last set waveform parameters
 *

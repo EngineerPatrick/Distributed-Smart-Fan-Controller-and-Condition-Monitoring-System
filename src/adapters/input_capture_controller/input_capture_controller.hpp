@@ -1,16 +1,10 @@
 #ifndef INPUT_CAPTURE_CONTROLLER_HPP
 #define INPUT_CAPTURE_CONTROLLER_HPP
 
-#include <cstddef>
+#include "input_capture_controller_interface.hpp"
 #include <cstdint>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/drivers/counter.h>
-
-#define INPUT_CAPTURE_TIMER_DEVICE(alias) { \
-	DEVICE_DT_GET(DT_COUNTER_CAPTURES_CTLR_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
-	DT_COUNTER_CAPTURES_FLAGS_BY_IDX(DT_ALIAS(alias), counter_captures, 0), \
-	static_cast<uint8_t>(DT_COUNTER_CAPTURES_CHANNEL_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
-}
 
 namespace input_capture_controller {
 
@@ -28,11 +22,11 @@ namespace input_capture_controller {
 	};
 
 	struct ErrorState {
-		input_capture_controller::ErrorCode code = input_capture_controller::ErrorCode::Ok;
+		input_capture_controller_interface::ErrorCode code = input_capture_controller_interface::ErrorCode::Ok;
 		int return_value = 0;
 	};
 
-	class InputCaptureSignal {
+	class InputCaptureSignal : public input_capture_controller_interface::InputCaptureSignalInterface {
 
 		public:
 
@@ -48,11 +42,12 @@ namespace input_capture_controller {
 			InputCaptureSignal& operator=(const InputCaptureSignal&) = delete;
 			InputCaptureSignal& operator=(InputCaptureSignal&&) = delete;
 
-			input_capture_controller::ErrorCode capture_start();
-			input_capture_controller::ErrorCode capture_stop();
+			input_capture_controller_interface::ErrorCode capture_start() override;
+			input_capture_controller_interface::ErrorCode capture_stop() override;
 
-			input_capture_controller::ErrorCode capture_period_ns_get(std::uint64_t& capture_period_ns);
-			[[nodiscard("Called error getter and discarded its return value")]] input_capture_controller::ErrorState error_state_get() const;
+			input_capture_controller_interface::ErrorCode capture_period_ns_get(std::uint64_t& capture_period_ns) override;
+			[[nodiscard("Called error getter and discarded its return value")]]
+			input_capture_controller_interface::ErrorState error_state_get() const override;
 
 		private:
 
@@ -78,7 +73,7 @@ namespace input_capture_controller {
 			input_capture_controller::InputCaptureSignal::CaptureState capture;
 			input_capture_controller::InputCaptureSignal::CaptureState capture_copy;
 			input_capture_controller::InputCaptureSignal::SystemState system;
-			input_capture_controller::ErrorState error;
+			input_capture_controller_interface::ErrorState error;
 
 			static void capture_callback(
 				const struct device* const timer_device_ptr,

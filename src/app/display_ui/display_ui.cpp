@@ -12,7 +12,7 @@
 */
 
 #include "display_ui.hpp"
-#include "grid_printer.hpp"
+#include "grid_printer_interface.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <array>
@@ -33,29 +33,29 @@ static TempValue temp;
 
 static SpeedValue speed;
 
-display_ui::ErrorCode display_ui::fixed_ui_print(grid_printer::GridPrinter& readings_grid) {
+display_ui::ErrorCode display_ui::fixed_ui_print(grid_printer_interface::DisplayGridInterface& readings_grid) {
 
-	if (readings_grid.cells_clear() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_clear() != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayClear;
 	}
 
-	if (readings_grid.cells_string_write("Readings", 0, 2) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("Readings", 0, 2) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (readings_grid.cells_string_write("T     . degC", 1, 0) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("T     . degC", 1, 0) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (readings_grid.cells_string_write("S        RPM", 2, 0) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("S        RPM", 2, 0) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (readings_grid.cells_string_write("N         dB", 3, 0) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write("N         dB", 3, 0) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (readings_grid.cells_print() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_print() != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
@@ -135,13 +135,13 @@ static display_ui::ErrorCode empty_digit_handler(
 	const std::size_t row_idx,
 	const std::size_t column_idx,
 	bool& digit_flag,
-	grid_printer::GridPrinter& readings_grid
+	grid_printer_interface::DisplayGridInterface& readings_grid
 ) {
 
 	if (digit) {
 		std::string_view digit_str_view = digit_to_str_view(digit);
 
-		if (readings_grid.cells_string_write(digit_str_view, row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(digit_str_view, row_idx, column_idx) != grid_printer_interface::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 
@@ -150,7 +150,7 @@ static display_ui::ErrorCode empty_digit_handler(
 
 	else if (!digit && digit_flag) {
 
-		if (readings_grid.cells_string_write(" ", row_idx, column_idx) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(" ", row_idx, column_idx) != grid_printer_interface::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 
@@ -160,7 +160,7 @@ static display_ui::ErrorCode empty_digit_handler(
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& readings_grid, std::int16_t temp_c_x10) {
+display_ui::ErrorCode display_ui::temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
 	std::array<std::uint8_t, 3> digits = {0, 0, 0};
 
@@ -170,7 +170,7 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& re
 
 	if (temp_c_x10 < 0 && !temp.negative_sign) {
 
-			if (readings_grid.cells_string_write("-", 1, 3) != grid_printer::ErrorCode::Ok) {
+			if (readings_grid.cells_string_write("-", 1, 3) != grid_printer_interface::ErrorCode::Ok) {
 				return display_ui::ErrorCode::DisplayStringLoad;
 			}
 
@@ -179,7 +179,7 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& re
 
 	else if (temp_c_x10 >= 0 && temp.negative_sign) {
 
-			if (readings_grid.cells_string_write(" ", 1, 3) != grid_printer::ErrorCode::Ok) {
+			if (readings_grid.cells_string_write(" ", 1, 3) != grid_printer_interface::ErrorCode::Ok) {
 				return display_ui::ErrorCode::DisplayStringLoad;
 			}
 
@@ -196,24 +196,24 @@ display_ui::ErrorCode display_ui::temp_value_print(grid_printer::GridPrinter& re
 
 	std::string_view digit2_str_view = digit_to_str_view(digits.at(1));
 
-	if (readings_grid.cells_string_write(digit2_str_view, 1, 5) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write(digit2_str_view, 1, 5) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
 	std::string_view digit3_str_view = digit_to_str_view(digits.at(2));
 
-	if (readings_grid.cells_string_write(digit3_str_view, 1, 7) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write(digit3_str_view, 1, 7) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (readings_grid.cells_print() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_print() != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 
 	return display_ui::ErrorCode::Ok;
 }
 
-display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& readings_grid, std::uint16_t speed_rpm) {
+display_ui::ErrorCode display_ui::speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm) {
 	display_ui::ErrorCode error_code = display_ui::ErrorCode::Ok;
 	std::array<std::uint8_t, 4> digits = {0, 0, 0, 0};
 
@@ -242,7 +242,7 @@ display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& r
 
 		speed.second_digit = true;
 
-		if (readings_grid.cells_string_write(digit2_str_view, 2, 6) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(digit2_str_view, 2, 6) != grid_printer_interface::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 	}
@@ -260,18 +260,18 @@ display_ui::ErrorCode display_ui::speed_value_print(grid_printer::GridPrinter& r
 
 		speed.third_digit = true;
 
-		if (readings_grid.cells_string_write(digit3_str_view, 2, 7) != grid_printer::ErrorCode::Ok) {
+		if (readings_grid.cells_string_write(digit3_str_view, 2, 7) != grid_printer_interface::ErrorCode::Ok) {
 			return display_ui::ErrorCode::DisplayStringLoad;
 		}
 	}
 
 	std::string_view digit4_str_view = digit_to_str_view(digits.at(3));
 
-	if (readings_grid.cells_string_write(digit4_str_view, 2, 8) != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_string_write(digit4_str_view, 2, 8) != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayStringLoad;
 	}
 
-	if (readings_grid.cells_print() != grid_printer::ErrorCode::Ok) {
+	if (readings_grid.cells_print() != grid_printer_interface::ErrorCode::Ok) {
 		return display_ui::ErrorCode::DisplayPrint;
 	}
 

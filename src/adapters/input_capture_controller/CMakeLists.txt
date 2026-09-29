@@ -8,4 +8,5 @@ target_sources(app
 		TYPE HEADERS
 		FILES
 		input_capture_controller.hpp
+		input_capture_controller_interface.hpp
 )

@@ -13,6 +13,7 @@
 #ifndef TEMPERATURE_READER_HPP
 #define TEMPERATURE_READER_HPP
 
+#include "temperature_reader_interface.hpp"
 #include <cstdint>
 #include <cstddef>
 #include <zephyr/device.h>
@@ -35,31 +36,17 @@
 
 namespace temperature_reader {
 
-	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
-		Ok,
-		DeviceUnready,
-		ReadingUnready,
-		ZSensorDecoderGet,
-		ZSensorRead,
-		ZSensorDecode
-	};
-
-	struct ErrorState {
-		temperature_reader::ErrorCode code = temperature_reader::ErrorCode::Ok;
-		int return_value = 0;
-	};
-
 	struct SensorDevice {
-		const struct device* const device_ptr;
-		const struct rtio_iodev* const iodev_ptr;
-		struct rtio* const ctx_ptr;
+		const struct device* const device_ptr = nullptr;
+		const struct rtio_iodev* const iodev_ptr = nullptr;
+		struct rtio* const ctx_ptr = nullptr;
 	};
 
-	class TemperatureSignal {
+	class TemperatureSignal : public temperature_reader_interface::TemperatureSignalInterface {
 
 		public:
 
-			TemperatureSignal(temperature_reader::SensorDevice temperature_sensor_device);
+			explicit TemperatureSignal(temperature_reader::SensorDevice temperature_sensor_device);
 
 			/*
 			*
@@ -71,9 +58,10 @@ namespace temperature_reader {
 			TemperatureSignal& operator=(const TemperatureSignal&) = delete;
 			TemperatureSignal& operator=(TemperatureSignal&&) = delete;
 
-			temperature_reader::ErrorCode value_read(std::int16_t& temp_c_x100);
+			temperature_reader_interface::ErrorCode value_read(std::int16_t& temp_c_x100) override;
 
-			[[nodiscard("Called error getter and discarded its return value")]] temperature_reader::ErrorState error_state_get() const;
+			[[nodiscard("Called error getter and discarded its return value")]]
+			temperature_reader_interface::ErrorState error_state_get() const override;
 
 		private:
 
@@ -93,7 +81,7 @@ namespace temperature_reader {
 				std::int16_t temp_c_x100 = 0;
 			};
 
-			temperature_reader::ErrorState error;
+			temperature_reader_interface::ErrorState error;
 			temperature_reader::TemperatureSignal::SystemState system;
 			temperature_reader::TemperatureSignal::SensorState sensor;
 			temperature_reader::TemperatureSignal::ReadingState reading;
@@ -107,7 +95,7 @@ namespace temperature_reader {
 
 /**
 *
-*	@enum		temperature_reader::ErrorCode
+*	@enum		temperature_reader_interface::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -117,7 +105,7 @@ namespace temperature_reader {
 
 /**
 *
-*	@struct		temperature_reader::ErrorState
+*	@struct		temperature_reader_interface::ErrorState
 *
 *	@brief		Data structure for all types of errors
 *
@@ -164,7 +152,7 @@ namespace temperature_reader {
 
 /**
 *
-*	@fn			temperature_reader::ErrorCode temperature_reader::TemperatureSignal::temp_read(std::int16_t& temp_c_x100);
+*	@fn			temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::temp_read(std::int16_t& temp_c_x100);
 *
 *	@brief		Method to read the temperature from the sensor and expose it in hundredth of Celsius degrees
 *
@@ -184,7 +172,7 @@ namespace temperature_reader {
 
 /**
 *
-*	@fn			temperature_reader::ErrorState temperature_reader::TemperatureSignal::error_state_get() const
+*	@fn			temperature_reader_interface::ErrorState temperature_reader::TemperatureSignal::error_state_get() const
 *
 *	@brief		Method to obtain the full error report
 *
