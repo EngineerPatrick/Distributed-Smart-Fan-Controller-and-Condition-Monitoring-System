@@ -124,7 +124,7 @@ input_capture_controller_interface::ErrorCode input_capture_controller::InputCap
 	return this->error.code;
 }
 
-input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_period_ns_get(std::uint64_t& capture_period_ns) {
+input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_period_ns_get(unsigned long long int& capture_period_ns) {
 	std::uint32_t current_timestamp_ticks = 0;
 	std::uint32_t previous_timestamp_ticks = 0;
 
@@ -149,7 +149,7 @@ input_capture_controller_interface::ErrorCode input_capture_controller::InputCap
 	}
 
 	else {
-		capture_period_ns = counter_ticks_to_ns(this->counter.timer.dev, current_timestamp_ticks + (this->counter.resolution_ticks - previous_timestamp_ticks));
+		capture_period_ns = counter_ticks_to_ns(this->counter.timer.dev, current_timestamp_ticks + this->counter.resolution_ticks - previous_timestamp_ticks);
 	}
 
 	atomic_set(&(this->system.capture_reading), 0);

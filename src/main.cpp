@@ -33,7 +33,7 @@
 DEFINE_TEMPERATURE_SENSOR(SENSOR0_ALIAS)
 
 int main(void) {
-	std::int16_t temp_c_x100 = 0;
+	int temp_c_x100 = 0;
 	unsigned int speed_rpm = 0;
 
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);

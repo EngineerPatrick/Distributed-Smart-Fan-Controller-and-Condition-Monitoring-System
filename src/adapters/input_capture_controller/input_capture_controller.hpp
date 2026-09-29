@@ -45,7 +45,7 @@ namespace input_capture_controller {
 			input_capture_controller_interface::ErrorCode capture_start() override;
 			input_capture_controller_interface::ErrorCode capture_stop() override;
 
-			input_capture_controller_interface::ErrorCode capture_period_ns_get(std::uint64_t& capture_period_ns) override;
+			input_capture_controller_interface::ErrorCode capture_period_ns_get(unsigned long long int& capture_period_ns) override;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			input_capture_controller_interface::ErrorState error_state_get() const override;
 

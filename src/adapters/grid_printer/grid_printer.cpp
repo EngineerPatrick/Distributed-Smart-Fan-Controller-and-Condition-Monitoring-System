@@ -1,8 +1,8 @@
 #include "grid_printer.hpp"
 #include "grid_printer_interface.hpp"
 #include "fonts_adapter.hpp"
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <array>
 #include <string_view>
 #include <zephyr/device.h>

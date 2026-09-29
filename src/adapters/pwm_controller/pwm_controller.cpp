@@ -13,8 +13,6 @@
 
 #include "pwm_controller.hpp"
 #include "pwm_controller_interface.hpp"
-#include <cstddef>
-#include <cstdint>
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
 
@@ -30,7 +28,7 @@ timer{timer_device} {
 	this->error = {pwm_controller_interface::ErrorCode::Ok, 0};
 }
 
-pwm_controller_interface::ErrorCode pwm_controller::PwmSignal::start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns) {
+pwm_controller_interface::ErrorCode pwm_controller::PwmSignal::start(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) {
 
 	if (!this->system.pwm_ready) {
 		this->error = {pwm_controller_interface::ErrorCode::PwmUnready, 0};
@@ -49,7 +47,7 @@ pwm_controller_interface::ErrorCode pwm_controller::PwmSignal::start(std::size_t
 		return this->error.code;
 	}
 
-	this->waveform = {waveform_period_ns, waveform_pulse_width_ns, static_cast<uint8_t>((waveform_pulse_width_ns * 100) / waveform_period_ns)};
+	this->waveform = {waveform_period_ns, waveform_pulse_width_ns};
 	this->system.pwm_running = true;
 	this->error = {pwm_controller_interface::ErrorCode::Ok, 0};
 	return this->error.code;
@@ -70,7 +68,6 @@ pwm_controller_interface::ErrorCode pwm_controller::PwmSignal::stop() {
 	}
 
 	this->waveform.pulse_width_ns = 0;
-	this->waveform.duty_cycle_x100 = 0;
 	this->system.pwm_running = false;
 	this->error = {pwm_controller_interface::ErrorCode::Ok, 0};
 	return this->error.code;
