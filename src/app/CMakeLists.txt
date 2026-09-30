@@ -1,1 +1,1 @@
-add_subdirectory(display_ui)
+add_subdirectory(dashboard_controller)

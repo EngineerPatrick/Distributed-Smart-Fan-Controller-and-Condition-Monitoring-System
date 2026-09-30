@@ -6,7 +6,7 @@
 
 #include "grid_printer.hpp"
 #include "grid_printer_interface.hpp"
-#include "display_ui.hpp"
+#include "dashboard_controller.hpp"
 #include "temperature_reader.hpp"
 #include "temperature_reader_interface.hpp"
 #include "pwm_controller.hpp"
@@ -39,9 +39,9 @@ int main(void) {
 	static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(DT_ALIAS(error_led), gpios);
 	gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_ACTIVE);
 
-	static grid_printer::DisplayGrid readings_grid{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
+	static grid_printer::DisplayGrid dashboard_grid{DEVICE_DT_GET(DT_ALIAS(DISPLAY0_ALIAS))};
 
-	if (readings_grid.error_state_get().code != grid_printer_interface::ErrorCode::Ok) {
+	if (dashboard_grid.error_state_get().code != grid_printer_interface::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -79,7 +79,15 @@ int main(void) {
 		while (1) {}
 	}
 
-	if (display_ui::fixed_ui_print(readings_grid) != display_ui::ErrorCode::Ok) {
+	static dashboard_controller::DashboardUi dashboard{dashboard_grid};
+
+	if (dashboard.error_get() != dashboard_controller::ErrorCode::Ok) {
+		gpio_pin_toggle_dt(&error_led);
+
+		while (1) {}
+	}
+
+	if (dashboard.structure_print() != dashboard_controller::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -105,13 +113,13 @@ int main(void) {
 			while (1) {}
 		}
 
-		if (display_ui::temp_value_print(readings_grid, (temp_c_x100 / 10)) != display_ui::ErrorCode::Ok) {
+		if (dashboard.temp_value_print(temp_c_x100 / 10) != dashboard_controller::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
 		}
 
-		if (display_ui::speed_value_print(readings_grid, speed_rpm) != display_ui::ErrorCode::Ok) {
+		if (dashboard.speed_value_print(speed_rpm) != dashboard_controller::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
