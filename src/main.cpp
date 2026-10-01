@@ -73,7 +73,7 @@ int main(void) {
 
 	static fan_controller::FourWireFan arctic_p12_max{fan_pwm, fan_tach};
 
-	if (arctic_p12_max.error_get() != fan_controller::ErrorCode::Ok) {
+	if (arctic_p12_max.error_state_get().general != fan_controller::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -93,7 +93,7 @@ int main(void) {
 		while (1) {}
 	}
 
-	if (arctic_p12_max.boot() != fan_controller::ErrorCode::Ok) {
+	if (arctic_p12_max.boot().general != fan_controller::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -107,7 +107,7 @@ int main(void) {
 			while (1) {}
 		}
 
-		if (arctic_p12_max.speed_measure(speed_rpm) != fan_controller::ErrorCode::Ok) {
+		if (arctic_p12_max.speed_measure(speed_rpm).general != fan_controller::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}

@@ -10,15 +10,24 @@ namespace fan_controller {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		PwmUnready,
-		TachometerUnready,
+		SpecificError,
 		FanUnready,
+		FanRunning,
 		FanNotRunning,
+		ParamDutyCycle,
+		PwmUnready,
 		PwmStart,
-		TachometerReadingStart,
 		PwmStop,
+		TachometerUnready,
+		TachometerReadingStart,
 		TachometerReadingStop,
 		TachometerReadingCapture
+	};
+
+	struct ErrorState {
+		fan_controller::ErrorCode general = fan_controller::ErrorCode::Ok;
+		fan_controller::ErrorCode pwm = fan_controller::ErrorCode::Ok;
+		fan_controller::ErrorCode tachometer = fan_controller::ErrorCode::Ok;
 	};
 
 	class FourWireFan {
@@ -37,13 +46,13 @@ namespace fan_controller {
 			FourWireFan& operator=(const FourWireFan&) = delete;
 			FourWireFan& operator=(FourWireFan&&) = delete;
 
-			fan_controller::ErrorCode boot();
-			fan_controller::ErrorCode stop();
-			fan_controller::ErrorCode speed_measure(unsigned int& measured_speed_rpm);
-			fan_controller::ErrorCode duty_cycle_update(unsigned int duty_cycle_x100);
+			fan_controller::ErrorState boot();
+			fan_controller::ErrorState stop();
+			fan_controller::ErrorState speed_measure(unsigned int& measured_speed_rpm);
+			fan_controller::ErrorState duty_cycle_update(unsigned int duty_cycle_x100);
 
 			[[nodiscard("Called error getter and discarded its return value")]]
-			fan_controller::ErrorCode error_get() const;
+			fan_controller::ErrorState error_state_get() const;
 
 		private:
 
@@ -59,14 +68,17 @@ namespace fan_controller {
 			};
 
 			struct SystemState {
-				bool fan_ready = false;
-				bool fan_running = false;
+				bool pwm_ready = false;
+				bool pwm_running = false;
+				bool tachometer_ready = false;
+				bool tachometer_running = false;
 			};
 
 			fan_controller::FourWireFan::PwmState pwm;
 			fan_controller::FourWireFan::TachometerState tachometer;
 			fan_controller::FourWireFan::SystemState system;
-			fan_controller::ErrorCode error = fan_controller::ErrorCode::Ok;
+
+			fan_controller::ErrorState error;
 	};
 }
 
