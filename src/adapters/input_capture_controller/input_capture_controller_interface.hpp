@@ -1,12 +1,6 @@
 #ifndef INPUT_CAPTURE_CONTROLLER_INTERFACE_HPP
 #define INPUT_CAPTURE_CONTROLLER_INTERFACE_HPP
 
-#define INPUT_CAPTURE_TIMER_DEVICE(alias) { \
-	DEVICE_DT_GET(DT_COUNTER_CAPTURES_CTLR_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
-	DT_COUNTER_CAPTURES_FLAGS_BY_IDX(DT_ALIAS(alias), counter_captures, 0), \
-	static_cast<uint8_t>(DT_COUNTER_CAPTURES_CHANNEL_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
-}
-
 namespace input_capture_controller_interface {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
