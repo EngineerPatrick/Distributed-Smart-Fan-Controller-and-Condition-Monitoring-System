@@ -42,7 +42,7 @@ fan_controller::ErrorCode fan_controller::FourWireFan::boot() {
 	}
 
 	this->pwm.period_ns = PERIOD_NS_FOR_25KHZ;
-	this->pwm.duty_cycle_x100 = PERIOD_NS_FOR_25KHZ / 2;
+	this->pwm.duty_cycle_x100 = 50;
 
 	if (this->tachometer.signal.capture_start() != input_capture_controller_interface::ErrorCode::Ok) {
 		this->error = fan_controller::ErrorCode::TachometerReadingStart;
@@ -55,23 +55,25 @@ fan_controller::ErrorCode fan_controller::FourWireFan::boot() {
 }
 
 fan_controller::ErrorCode fan_controller::FourWireFan::stop() {
+	pwm_controller_interface::ErrorCode pwm_error = pwm_controller_interface::ErrorCode::Ok;
+	input_capture_controller_interface::ErrorCode tachometer_error = input_capture_controller_interface::ErrorCode::Ok;
 
-	if (!this->system.fan_running) {
-		this->error = fan_controller::ErrorCode::FanNotRunning;
-		return this->error;
-	}
+	pwm_error = this->pwm.signal.stop();
 
-	if (this->pwm.signal.stop() != pwm_controller_interface::ErrorCode::Ok) {
+	if (pwm_error != pwm_controller_interface::ErrorCode::Ok && pwm_error != pwm_controller_interface::ErrorCode::PwmNotRunning) {
 		this->error = fan_controller::ErrorCode::PwmStop;
 		return this->error;
 	}
 
-	if (this->tachometer.signal.capture_stop() != input_capture_controller_interface::ErrorCode::Ok) {
+	this->system.fan_running = false;
+
+	tachometer_error = this->tachometer.signal.capture_stop();
+
+	if (tachometer_error != input_capture_controller_interface::ErrorCode::Ok && tachometer_error != input_capture_controller_interface::ErrorCode::CaptureNotRunning) {
 		this->error = fan_controller::ErrorCode::TachometerReadingStop;
 		return this->error;
 	}
 
-	this->system.fan_running = false;
 	this->error = fan_controller::ErrorCode::Ok;
 	return this->error;
 }
@@ -100,6 +102,11 @@ fan_controller::ErrorCode fan_controller::FourWireFan::duty_cycle_update(unsigne
 
 	if (!this->system.fan_running) {
 		this->error = fan_controller::ErrorCode::FanNotRunning;
+		return this->error;
+	}
+
+	if (duty_cycle_x100 > 100) {
+		this->error = fan_controller::ErrorCode::ParamDutyCycle;
 		return this->error;
 	}
 

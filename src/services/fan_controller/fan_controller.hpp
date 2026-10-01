@@ -10,13 +10,14 @@ namespace fan_controller {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		PwmUnready,
-		TachometerUnready,
+		ParamDutyCycle,
 		FanUnready,
 		FanNotRunning,
+		PwmUnready,
 		PwmStart,
-		TachometerReadingStart,
 		PwmStop,
+		TachometerUnready,
+		TachometerReadingStart,
 		TachometerReadingStop,
 		TachometerReadingCapture
 	};
