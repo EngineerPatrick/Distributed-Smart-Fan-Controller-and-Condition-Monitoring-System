@@ -6,25 +6,13 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/drivers/counter.h>
 
+#define INPUT_CAPTURE_TIMER_DEVICE(alias) { \
+	DEVICE_DT_GET(DT_COUNTER_CAPTURES_CTLR_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
+	DT_COUNTER_CAPTURES_FLAGS_BY_IDX(DT_ALIAS(alias), counter_captures, 0), \
+	static_cast<uint8_t>(DT_COUNTER_CAPTURES_CHANNEL_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
+}
+
 namespace input_capture_controller {
-
-	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
-		Ok,
-		DeviceUnready,
-		CaptureUnready,
-		CaptureNotRunning,
-		NewCaptureUnavailable,
-		ZCounterCaptureConfigure,
-		ZCounterCaptureEnable,
-		ZCounterStart,
-		ZCounterStop,
-		ZCounterReset
-	};
-
-	struct ErrorState {
-		input_capture_controller_interface::ErrorCode code = input_capture_controller_interface::ErrorCode::Ok;
-		int return_value = 0;
-	};
 
 	class InputCaptureSignal : public input_capture_controller_interface::InputCaptureSignalInterface {
 
@@ -59,13 +47,14 @@ namespace input_capture_controller {
 			struct CaptureState {
 				atomic_t current_timestamp_ticks = ATOMIC_INIT(0);
 				atomic_t previous_timestamp_ticks = ATOMIC_INIT(0);
+				atomic_t last = ATOMIC_INIT(0);
+				std::uint32_t read = 0;
 			};
 
 			struct SystemState {
 				bool capture_ready = false;
 				bool capture_running = false;
-				atomic_t first_capture = ATOMIC_INIT(0);
-				atomic_t new_capture = ATOMIC_INIT(0);
+				atomic_t second_capture = ATOMIC_INIT(0);
 				atomic_t capture_reading = ATOMIC_INIT(0);
 			};
 
