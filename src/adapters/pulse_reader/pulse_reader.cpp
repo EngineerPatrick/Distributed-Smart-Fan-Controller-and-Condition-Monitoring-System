@@ -1,18 +1,18 @@
-#include "input_capture_controller.hpp"
-#include "input_capture_controller_interface.hpp"
+#include "pulse_reader.hpp"
+#include "pulse_reader_interface.hpp"
 #include <cstdint>
 #include <zephyr/device.h>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/drivers/counter.h>
 
-void input_capture_controller::InputCaptureSignal::capture_callback(
+void pulse_reader::PulseSignal::capture_callback(
 	const struct device* const timer_device_ptr,
 	const std::uint8_t timer_channel_id,
 	const counter_capture_flags_t timer_flags,
 	const std::uint32_t current_timestamp_ticks,
 	void* const context_ptr
 ) {
-	input_capture_controller::InputCaptureSignal* const this_context_ptr = static_cast<input_capture_controller::InputCaptureSignal*>(context_ptr);
+	pulse_reader::PulseSignal* const this_context_ptr = static_cast<pulse_reader::PulseSignal*>(context_ptr);
 
 	atomic_set(
 		&(this_context_ptr->capture.previous_timestamp_ticks),
@@ -33,45 +33,45 @@ void input_capture_controller::InputCaptureSignal::capture_callback(
 	}
 }
 
-input_capture_controller::InputCaptureSignal::InputCaptureSignal(const counter_capture_dt_spec timer_device, const counter_capture_flags_t additional_flags) :
+pulse_reader::PulseSignal::PulseSignal(const counter_capture_dt_spec timer_device, const counter_capture_flags_t additional_flags) :
 counter{
 	{{timer_device.dev}, {timer_device.flags | additional_flags}, {timer_device.chan_id}},
 	static_cast<std::uint64_t>(counter_get_max_top_value(this->counter.timer.dev)) + 1
 } {
 
 	if (!device_is_ready(this->counter.timer.dev)) {
-		this->error = {input_capture_controller_interface::ErrorCode::DeviceUnready, 0};
+		this->error = {pulse_reader_interface::ErrorCode::DeviceUnready, 0};
 		return;
 	}
 
-	this->error.return_value = counter_capture_configure_dt(&(this->counter.timer), input_capture_controller::InputCaptureSignal::capture_callback, this);
+	this->error.return_value = counter_capture_configure_dt(&(this->counter.timer), pulse_reader::PulseSignal::capture_callback, this);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterCaptureConfigure;
+		this->error.code = pulse_reader_interface::ErrorCode::ZCounterCaptureConfigure;
 		return;
 	}
 
 	this->error.return_value = counter_enable_capture_dt(&(this->counter.timer));
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterCaptureEnable;
+		this->error.code = pulse_reader_interface::ErrorCode::ZCounterCaptureEnable;
 		return;
 	}
 
 	this->system.capture_ready = true;
-	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
+	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 }
 
-input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_start() {
+pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_start() {
 
 	if (!this->system.capture_ready) {
-		this->error = {input_capture_controller_interface::ErrorCode::CaptureUnready, 0};
+		this->error = {pulse_reader_interface::ErrorCode::CaptureUnready, 0};
 		return this->error.code;
 	}
 
 	if (this->system.capture_running) {
 
-		if (this->capture_stop() != input_capture_controller_interface::ErrorCode::Ok) {
+		if (this->capture_stop() != pulse_reader_interface::ErrorCode::Ok) {
 			return this->error.code;
 		}
 	}
@@ -79,33 +79,33 @@ input_capture_controller_interface::ErrorCode input_capture_controller::InputCap
 	this->error.return_value = counter_start(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterStart;
+		this->error.code = pulse_reader_interface::ErrorCode::ZCounterStart;
 		return this->error.code;
 	}
 
 	this->system.capture_running = true;
-	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
+	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_stop() {
+pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_stop() {
 
 	if (!this->system.capture_running) {
-		this->error = {input_capture_controller_interface::ErrorCode::CaptureNotRunning, 0};
+		this->error = {pulse_reader_interface::ErrorCode::CaptureNotRunning, 0};
 		return this->error.code;
 	}
 
 	this->error.return_value = counter_stop(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterStop;
+		this->error.code = pulse_reader_interface::ErrorCode::ZCounterStop;
 		return this->error.code;
 	}
 
 	this->error.return_value = counter_reset(this->counter.timer.dev);
 
 	if (this->error.return_value != 0) {
-		this->error.code = input_capture_controller_interface::ErrorCode::ZCounterReset;
+		this->error.code = pulse_reader_interface::ErrorCode::ZCounterReset;
 		return this->error.code;
 	}
 
@@ -119,17 +119,17 @@ input_capture_controller_interface::ErrorCode input_capture_controller::InputCap
 	atomic_set(&(this->capture_copy.previous_timestamp_ticks), 0);
 
 	this->system.capture_running = false;
-	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
+	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-input_capture_controller_interface::ErrorCode input_capture_controller::InputCaptureSignal::capture_period_ns_get(unsigned long long int& capture_period_ns) {
+pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_period_ns_get(unsigned long long int& capture_period_ns) {
 	std::uint32_t last_capture = 0;
 	std::uint32_t current_timestamp_ticks = 0;
 	std::uint32_t previous_timestamp_ticks = 0;
 
 	if (!this->system.capture_running) {
-		this->error = {input_capture_controller_interface::ErrorCode::CaptureNotRunning, 0};
+		this->error = {pulse_reader_interface::ErrorCode::CaptureNotRunning, 0};
 		return this->error.code;
 	}
 
@@ -137,7 +137,7 @@ input_capture_controller_interface::ErrorCode input_capture_controller::InputCap
 	last_capture = atomic_get(&(this->capture.last));
 
 	if (!atomic_get(&(this->system.second_capture)) || last_capture == this->capture.read) {
-		this->error = {input_capture_controller_interface::ErrorCode::NewCaptureUnavailable, 0};
+		this->error = {pulse_reader_interface::ErrorCode::NewCaptureUnavailable, 0};
 		return this->error.code;
 	}
 
@@ -154,10 +154,10 @@ input_capture_controller_interface::ErrorCode input_capture_controller::InputCap
 
 	this->capture.read = last_capture;
 	atomic_set(&(this->system.capture_reading), 0);
-	this->error = {input_capture_controller_interface::ErrorCode::Ok, 0};
+	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-input_capture_controller_interface::ErrorState input_capture_controller::InputCaptureSignal::error_state_get() const {
+pulse_reader_interface::ErrorState pulse_reader::PulseSignal::error_state_get() const {
 	return this->error;
 }

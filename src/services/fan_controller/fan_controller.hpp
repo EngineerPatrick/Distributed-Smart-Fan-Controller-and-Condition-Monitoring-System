@@ -1,8 +1,8 @@
 #ifndef FAN_CONTROLLER_HPP
 #define FAN_CONTROLLER_HPP
 
-#include "pwm_controller_interface.hpp"
-#include "input_capture_controller_interface.hpp"
+#include "pwm_generator_interface.hpp"
+#include "pulse_reader_interface.hpp"
 
 #define PERIOD_NS_FOR_25KHZ 40000UL								//25 KHz Frequency
 
@@ -34,7 +34,7 @@ namespace fan_controller {
 
 		public:
 
-			explicit FourWireFan(pwm_controller_interface::PwmSignalInterface& fan_pwm, input_capture_controller_interface::InputCaptureSignalInterface& fan_tachometer);
+			explicit FourWireFan(pwm_generator_interface::PwmSignalInterface& fan_pwm, pulse_reader_interface::PulseSignalInterface& fan_tachometer);
 
 			/*
 			*
@@ -57,13 +57,13 @@ namespace fan_controller {
 		private:
 
 			struct PwmState {
-				pwm_controller_interface::PwmSignalInterface& signal;
+				pwm_generator_interface::PwmSignalInterface& signal;
 				unsigned long long int period_ns = 0;
 				unsigned int duty_cycle_x100 = 0;
 			};
 
 			struct TachometerState {
-				input_capture_controller_interface::InputCaptureSignalInterface& signal;
+				pulse_reader_interface::PulseSignalInterface& signal;
 				unsigned int speed_rpm = 0;
 			};
 

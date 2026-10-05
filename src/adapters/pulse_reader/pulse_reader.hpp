@@ -1,7 +1,7 @@
-#ifndef INPUT_CAPTURE_CONTROLLER_HPP
-#define INPUT_CAPTURE_CONTROLLER_HPP
+#ifndef PULSE_READER_HPP
+#define PULSE_READER_HPP
 
-#include "input_capture_controller_interface.hpp"
+#include "pulse_reader_interface.hpp"
 #include <cstdint>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/drivers/counter.h>
@@ -12,30 +12,30 @@
 	static_cast<uint8_t>(DT_COUNTER_CAPTURES_CHANNEL_BY_IDX(DT_ALIAS(alias), counter_captures, 0)), \
 }
 
-namespace input_capture_controller {
+namespace pulse_reader {
 
-	class InputCaptureSignal : public input_capture_controller_interface::InputCaptureSignalInterface {
+	class PulseSignal : public pulse_reader_interface::PulseSignalInterface {
 
 		public:
 
-			InputCaptureSignal(const counter_capture_dt_spec timer_device, const counter_capture_flags_t additional_flags);
+			PulseSignal(const counter_capture_dt_spec timer_device, const counter_capture_flags_t additional_flags);
 
 			/*
 			*
 			*	Copy/move constructors/operators are deleted to prevent the creation of a copy of this class through these operations
 			*
 			*/
-			InputCaptureSignal(const InputCaptureSignal&) = delete;
-			InputCaptureSignal(InputCaptureSignal&&) = delete;
-			InputCaptureSignal& operator=(const InputCaptureSignal&) = delete;
-			InputCaptureSignal& operator=(InputCaptureSignal&&) = delete;
+			PulseSignal(const PulseSignal&) = delete;
+			PulseSignal(PulseSignal&&) = delete;
+			PulseSignal& operator=(const PulseSignal&) = delete;
+			PulseSignal& operator=(PulseSignal&&) = delete;
 
-			input_capture_controller_interface::ErrorCode capture_start() override;
-			input_capture_controller_interface::ErrorCode capture_stop() override;
+			pulse_reader_interface::ErrorCode capture_start() override;
+			pulse_reader_interface::ErrorCode capture_stop() override;
 
-			input_capture_controller_interface::ErrorCode capture_period_ns_get(unsigned long long int& capture_period_ns) override;
+			pulse_reader_interface::ErrorCode capture_period_ns_get(unsigned long long int& capture_period_ns) override;
 			[[nodiscard("Called error getter and discarded its return value")]]
-			input_capture_controller_interface::ErrorState error_state_get() const override;
+			pulse_reader_interface::ErrorState error_state_get() const override;
 
 		private:
 
@@ -58,11 +58,11 @@ namespace input_capture_controller {
 				atomic_t capture_reading = ATOMIC_INIT(0);
 			};
 
-			input_capture_controller::InputCaptureSignal::CounterState counter;
-			input_capture_controller::InputCaptureSignal::CaptureState capture;
-			input_capture_controller::InputCaptureSignal::CaptureState capture_copy;
-			input_capture_controller::InputCaptureSignal::SystemState system;
-			input_capture_controller_interface::ErrorState error;
+			pulse_reader::PulseSignal::CounterState counter;
+			pulse_reader::PulseSignal::CaptureState capture;
+			pulse_reader::PulseSignal::CaptureState capture_copy;
+			pulse_reader::PulseSignal::SystemState system;
+			pulse_reader_interface::ErrorState error;
 
 			static void capture_callback(
 				const struct device* const timer_device_ptr,

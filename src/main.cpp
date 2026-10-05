@@ -6,13 +6,13 @@
 
 #include "grid_printer.hpp"
 #include "grid_printer_interface.hpp"
-#include "dashboard_controller.hpp"
+#include "dashboard.hpp"
 #include "temperature_reader.hpp"
 #include "temperature_reader_interface.hpp"
-#include "pwm_controller.hpp"
-#include "pwm_controller_interface.hpp"
-#include "input_capture_controller.hpp"
-#include "input_capture_controller_interface.hpp"
+#include "pwm_generator.hpp"
+#include "pwm_generator_interface.hpp"
+#include "pulse_reader.hpp"
+#include "pulse_reader_interface.hpp"
 #include "fan_controller.hpp"
 #include <cstdint>
 #include <zephyr/devicetree.h>
@@ -55,17 +55,17 @@ int main(void) {
 		while (1) {}
 	}
 
-	static pwm_controller::PwmSignal fan_pwm{PWM_DT_SPEC_GET(DT_ALIAS(FAN0_ALIAS))};
+	static pwm_generator::PwmSignal fan_pwm{PWM_DT_SPEC_GET(DT_ALIAS(FAN0_ALIAS))};
 
-	if (fan_pwm.error_state_get().code != pwm_controller_interface::ErrorCode::Ok) {
+	if (fan_pwm.error_state_get().code != pwm_generator_interface::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	static input_capture_controller::InputCaptureSignal fan_tach{INPUT_CAPTURE_TIMER_DEVICE(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
+	static pulse_reader::PulseSignal fan_tach{INPUT_CAPTURE_TIMER_DEVICE(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
 
-	if (fan_tach.error_state_get().code != input_capture_controller_interface::ErrorCode::Ok) {
+	if (fan_tach.error_state_get().code != pulse_reader_interface::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -79,15 +79,15 @@ int main(void) {
 		while (1) {}
 	}
 
-	static dashboard_controller::DashboardUi dashboard{dashboard_grid};
+	static dashboard::Dashboard dashboard{dashboard_grid};
 
-	if (dashboard.error_get() != dashboard_controller::ErrorCode::Ok) {
+	if (dashboard.error_get() != dashboard::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
 	}
 
-	if (dashboard.structure_print() != dashboard_controller::ErrorCode::Ok) {
+	if (dashboard.structure_print() != dashboard::ErrorCode::Ok) {
 		gpio_pin_toggle_dt(&error_led);
 
 		while (1) {}
@@ -113,13 +113,13 @@ int main(void) {
 			while (1) {}
 		}
 
-		if (dashboard.temp_value_print(temp_c_x100 / 10) != dashboard_controller::ErrorCode::Ok) {
+		if (dashboard.temp_value_print(temp_c_x100 / 10) != dashboard::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}
 		}
 
-		if (dashboard.speed_value_print(speed_rpm) != dashboard_controller::ErrorCode::Ok) {
+		if (dashboard.speed_value_print(speed_rpm) != dashboard::ErrorCode::Ok) {
 			gpio_pin_toggle_dt(&error_led);
 
 			while (1) {}

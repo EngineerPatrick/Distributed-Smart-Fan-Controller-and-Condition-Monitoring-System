@@ -1,6 +1,6 @@
 /**
 *
-*	@file		pwm_controller.hpp
+*	@file		pwm_generator.hpp
 *
 *	@brief		Public API for the pwm module
 *
@@ -13,13 +13,13 @@
 #ifndef PWM_CONTROLLER_HPP
 #define PWM_CONTROLLER_HPP
 
-#include "pwm_controller_interface.hpp"
+#include "pwm_generator_interface.hpp"
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
 
-namespace pwm_controller {
+namespace pwm_generator {
 
-	class PwmSignal : public pwm_controller_interface::PwmSignalInterface {
+	class PwmSignal : public pwm_generator_interface::PwmSignalInterface {
 
 		public:
 
@@ -35,11 +35,11 @@ namespace pwm_controller {
 			PwmSignal& operator=(const PwmSignal&) = delete;
 			PwmSignal& operator=(PwmSignal&&) = delete;
 
-			pwm_controller_interface::ErrorCode start(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) override;
-			pwm_controller_interface::ErrorCode stop() override;
+			pwm_generator_interface::ErrorCode start(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) override;
+			pwm_generator_interface::ErrorCode stop() override;
 
 			[[nodiscard("Called error getter and discarded its return value")]]
-			pwm_controller_interface::ErrorState error_state_get() const override;
+			pwm_generator_interface::ErrorState error_state_get() const override;
 
 		private:
 
@@ -55,9 +55,9 @@ namespace pwm_controller {
 
 			struct pwm_dt_spec timer = {};
 
-			pwm_controller_interface::ErrorState error;
-			pwm_controller::PwmSignal::SystemState system;
-			pwm_controller::PwmSignal::WaveformState waveform;
+			pwm_generator_interface::ErrorState error;
+			pwm_generator::PwmSignal::SystemState system;
+			pwm_generator::PwmSignal::WaveformState waveform;
 	};
 }
 
@@ -65,7 +65,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@enum		pwm_controller_interface::ErrorCode
+*	@enum		pwm_generator_interface::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -75,7 +75,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@struct		pwm_controller_interface::ErrorState
+*	@struct		pwm_generator_interface::ErrorState
 *
 *	@brief		Data structure for all types of errors
 *
@@ -87,7 +87,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@class		pwm_controller::PwmSignal
+*	@class		pwm_generator::PwmSignal
 *
 *	@brief		Class for Zephyr's PWM API
 *
@@ -97,7 +97,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller::PwmSignal::PwmSignal(struct pwm_dt_spec pwm_dt_spec)
+*	@fn			pwm_generator::PwmSignal::PwmSignal(struct pwm_dt_spec pwm_dt_spec)
 *
 *	@brief		Constructor to initialize an instance for a specific PWM
 *
@@ -111,7 +111,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller_interface::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns)
+*	@fn			pwm_generator_interface::ErrorCode start(std::size_t waveform_period_ns, std::size_t waveform_pulse_width_ns)
 *
 *	@brief		Method to start the PWM with specific waveform parameters
 *
@@ -132,7 +132,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller_interface::ErrorCode stop()
+*	@fn			pwm_generator_interface::ErrorCode stop()
 *
 *	@brief		Method to stop the PWM
 *
@@ -146,7 +146,7 @@ namespace pwm_controller {
 
 /**
 *
-*	@fn			pwm_controller_interface::ErrorState error_state_get() const
+*	@fn			pwm_generator_interface::ErrorState error_state_get() const
 *
 *	@brief		Method to obtain the last set waveform parameters
 *

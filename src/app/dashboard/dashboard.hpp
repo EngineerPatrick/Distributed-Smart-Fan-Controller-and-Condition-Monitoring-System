@@ -1,8 +1,8 @@
 /**
 *
-*	@file		dashboard_controller.hpp
+*	@file		dashboard.hpp
 *
-*	@brief		Public API for the dashboard_controller module
+*	@brief		Public API for the dashboard module
 *
 *	@details	Prints the UI on the dsplay
 *
@@ -10,13 +10,13 @@
 *
 */
 
-#ifndef DASHBOARD_CONTROLLER_HPP
-#define DASHBOARD_CONTROLLER_HPP
+#ifndef DASHBOARD_HPP
+#define DASHBOARD_HPP
 
 #include "grid_printer_interface.hpp"
 #include <cstddef>
 
-namespace dashboard_controller {
+namespace dashboard {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
@@ -29,28 +29,28 @@ namespace dashboard_controller {
 		ParamSpeed
 	};
 
-	class DashboardUi {
+	class Dashboard {
 
 		public:
 
-			explicit DashboardUi(grid_printer_interface::DisplayGridInterface& dashboard_grid);
+			explicit Dashboard(grid_printer_interface::DisplayGridInterface& dashboard_grid);
 
 			/*
 			*
 			*	Copy/move constructors/operators are deleted to prevent the creation of another instance of this class through these operations
 			*
 			*/
-			DashboardUi(const DashboardUi&) = delete;
-			DashboardUi(DashboardUi&&) = delete;
-			DashboardUi& operator=(const DashboardUi&) = delete;
-			DashboardUi& operator=(DashboardUi&&) = delete;
+			Dashboard(const Dashboard&) = delete;
+			Dashboard(Dashboard&&) = delete;
+			Dashboard& operator=(const Dashboard&) = delete;
+			Dashboard& operator=(Dashboard&&) = delete;
 
-			dashboard_controller::ErrorCode structure_print();
-			dashboard_controller::ErrorCode temp_value_print(int temp_c_x10);
-			dashboard_controller::ErrorCode speed_value_print(unsigned int speed_rpm);
+			dashboard::ErrorCode structure_print();
+			dashboard::ErrorCode temp_value_print(int temp_c_x10);
+			dashboard::ErrorCode speed_value_print(unsigned int speed_rpm);
 
 			[[nodiscard("Called error getter and discarded its return value")]]
-			dashboard_controller::ErrorCode error_get() const;
+			dashboard::ErrorCode error_get() const;
 
 
 		private:
@@ -69,16 +69,16 @@ namespace dashboard_controller {
 			struct SystemState {
 				bool grid_ready = false;
 				bool structure = false;
-				dashboard_controller::DashboardUi::TempValueState temp;
-				dashboard_controller::DashboardUi::SpeedValueState speed;
+				dashboard::Dashboard::TempValueState temp;
+				dashboard::Dashboard::SpeedValueState speed;
 			};
 
 			grid_printer_interface::DisplayGridInterface& dashboard_grid;
 
-			dashboard_controller::DashboardUi::SystemState system;
-			dashboard_controller::ErrorCode error;
+			dashboard::Dashboard::SystemState system;
+			dashboard::ErrorCode error;
 
-			dashboard_controller::ErrorCode empty_digit_handler(unsigned int& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag);
+			dashboard::ErrorCode empty_digit_handler(unsigned int& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag);
 	};
 }
 
@@ -86,7 +86,7 @@ namespace dashboard_controller {
 
 /**
 *
-*	@enum 		dashboard_controller::ErrorCode
+*	@enum 		dashboard::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -94,7 +94,7 @@ namespace dashboard_controller {
 
 /**
 *
-*	@fn 		dashboard_controller::ErrorCode structure_print(grid_printer_interface::DisplayGridInterface& readings_grid)
+*	@fn 		dashboard::ErrorCode structure_print(grid_printer_interface::DisplayGridInterface& readings_grid)
 *
 *	@brief		Prints the fixed part of the UI on the display
 *
@@ -111,7 +111,7 @@ namespace dashboard_controller {
 
 /**
 *
-*	@fn 		dashboard_controller::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10)
+*	@fn 		dashboard::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10)
 *
 *	@brief		Prints the value of the tempearature reading on the display
 *
@@ -131,7 +131,7 @@ namespace dashboard_controller {
 
 /**
 *
-*	@fn 		dashboard_controller::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm)
+*	@fn 		dashboard::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm)
 *
 *	@brief		Prints the value of the tempearature reading on the display
 *

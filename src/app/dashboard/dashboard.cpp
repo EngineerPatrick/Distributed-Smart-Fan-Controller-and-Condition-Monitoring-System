@@ -1,8 +1,8 @@
 /**
 *
-*	@file		dashboard_controller.cpp
+*	@file		dashboard.cpp
 *
-*	@brief		Implementation for the dashboard_controller module
+*	@brief		Implementation for the dashboard module
 *
 *	@details	Prints multiple strings and	digits on the display
 *
@@ -11,64 +11,64 @@
 *
 */
 
-#include "dashboard_controller.hpp"
+#include "dashboard.hpp"
 #include "grid_printer_interface.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <array>
 #include <string_view>
 
-dashboard_controller::DashboardUi::DashboardUi(grid_printer_interface::DisplayGridInterface& dashboard_grid) :
+dashboard::Dashboard::Dashboard(grid_printer_interface::DisplayGridInterface& dashboard_grid) :
 dashboard_grid{dashboard_grid} {
 
 	if (this->dashboard_grid.error_state_get().code != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridUnready;
+		this->error = dashboard::ErrorCode::GridUnready;
 		return;
 	}
 
 	this->system.grid_ready = true;
-	this->error = dashboard_controller::ErrorCode::Ok;
+	this->error = dashboard::ErrorCode::Ok;
 }
 
-dashboard_controller::ErrorCode dashboard_controller::DashboardUi::structure_print() {
+dashboard::ErrorCode dashboard::Dashboard::structure_print() {
 
 	if (!this->system.grid_ready) {
-		this->error = dashboard_controller::ErrorCode::GridUnready;
+		this->error = dashboard::ErrorCode::GridUnready;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_clear() != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridClear;
+		this->error = dashboard::ErrorCode::GridClear;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_string_write("Readings", 0, 2) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_string_write("T     . degC", 1, 0) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_string_write("S        RPM", 2, 0) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_string_write("N         dB", 3, 0) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_print() != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridPrint;
+		this->error = dashboard::ErrorCode::GridPrint;
 		return this->error;
 	}
 
 	this->system.structure = true;
-	this->error = dashboard_controller::ErrorCode::Ok;
+	this->error = dashboard::ErrorCode::Ok;
 	return this->error;
 }
 
@@ -140,13 +140,13 @@ static std::string_view digit_to_str_view(unsigned int digit) {
 	return "ErrorInternal";
 }
 
-dashboard_controller::ErrorCode dashboard_controller::DashboardUi::empty_digit_handler(unsigned int& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag) {
+dashboard::ErrorCode dashboard::Dashboard::empty_digit_handler(unsigned int& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag) {
 
 	if (digit) {
 		std::string_view digit_str_view = digit_to_str_view(digit);
 
 		if (this->dashboard_grid.cells_string_write(digit_str_view, row_idx, column_idx) != grid_printer_interface::ErrorCode::Ok) {
-			this->error = dashboard_controller::ErrorCode::GridStringLoad;
+			this->error = dashboard::ErrorCode::GridStringLoad;
 			return this->error;
 		}
 
@@ -156,34 +156,34 @@ dashboard_controller::ErrorCode dashboard_controller::DashboardUi::empty_digit_h
 	else if (!digit && digit_flag) {
 
 		if (this->dashboard_grid.cells_string_write(" ", row_idx, column_idx) != grid_printer_interface::ErrorCode::Ok) {
-			this->error = dashboard_controller::ErrorCode::GridStringLoad;
+			this->error = dashboard::ErrorCode::GridStringLoad;
 			return this->error;
 		}
 
 		digit_flag = false;
 	}
 
-	this->error = dashboard_controller::ErrorCode::Ok;
+	this->error = dashboard::ErrorCode::Ok;
 	return this->error;
 }
 
-dashboard_controller::ErrorCode dashboard_controller::DashboardUi::temp_value_print(int temp_c_x10) {
+dashboard::ErrorCode dashboard::Dashboard::temp_value_print(int temp_c_x10) {
 	std::array<unsigned int, 3> digits = {0, 0, 0};
 
 	if (!this->system.structure) {
-		this->error = dashboard_controller::ErrorCode::FixedUiUnready;
+		this->error = dashboard::ErrorCode::FixedUiUnready;
 		return this->error;
 	}
 
 	if (temp_c_x10 > 999 || temp_c_x10 < -999) {
-		this->error = dashboard_controller::ErrorCode::ParamTemp;
+		this->error = dashboard::ErrorCode::ParamTemp;
 		return this->error;
 	}
 
 	if (temp_c_x10 < 0 && !this->system.temp.negative_sign) {
 
 			if (this->dashboard_grid.cells_string_write("-", 1, 3) != grid_printer_interface::ErrorCode::Ok) {
-				this->error = dashboard_controller::ErrorCode::GridStringLoad;
+				this->error = dashboard::ErrorCode::GridStringLoad;
 				return this->error;
 			}
 
@@ -193,7 +193,7 @@ dashboard_controller::ErrorCode dashboard_controller::DashboardUi::temp_value_pr
 	else if (temp_c_x10 >= 0 && this->system.temp.negative_sign) {
 
 			if (this->dashboard_grid.cells_string_write(" ", 1, 3) != grid_printer_interface::ErrorCode::Ok) {
-				this->error = dashboard_controller::ErrorCode::GridStringLoad;
+				this->error = dashboard::ErrorCode::GridStringLoad;
 				return this->error;
 			}
 
@@ -202,55 +202,55 @@ dashboard_controller::ErrorCode dashboard_controller::DashboardUi::temp_value_pr
 
 	digits_extract(temp_c_x10, digits);
 
-	if (this->empty_digit_handler(digits.at(0), 1, 4, this->system.temp.first_digit) != dashboard_controller::ErrorCode::Ok) {
+	if (this->empty_digit_handler(digits.at(0), 1, 4, this->system.temp.first_digit) != dashboard::ErrorCode::Ok) {
 		return this->error;
 	}
 
 	std::string_view digit2_str_view = digit_to_str_view(digits.at(1));
 
 	if (this->dashboard_grid.cells_string_write(digit2_str_view, 1, 5) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	std::string_view digit3_str_view = digit_to_str_view(digits.at(2));
 
 	if (this->dashboard_grid.cells_string_write(digit3_str_view, 1, 7) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_print() != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridPrint;
+		this->error = dashboard::ErrorCode::GridPrint;
 		return this->error;
 	}
 
-	this->error = dashboard_controller::ErrorCode::Ok;
+	this->error = dashboard::ErrorCode::Ok;
 	return this->error;
 }
 
-dashboard_controller::ErrorCode dashboard_controller::DashboardUi::speed_value_print(unsigned int speed_rpm) {
+dashboard::ErrorCode dashboard::Dashboard::speed_value_print(unsigned int speed_rpm) {
 	std::array<unsigned int, 4> digits = {0, 0, 0, 0};
 
 	if (!this->system.structure) {
-		this->error = dashboard_controller::ErrorCode::FixedUiUnready;
+		this->error = dashboard::ErrorCode::FixedUiUnready;
 		return this->error;
 	}
 
 	if (speed_rpm > 9999) {
-		this->error = dashboard_controller::ErrorCode::ParamSpeed;
+		this->error = dashboard::ErrorCode::ParamSpeed;
 		return this->error;
 	}
 
 	digits_extract(speed_rpm, digits);
 
-	if (this->empty_digit_handler(digits.at(0), 2, 5, this->system.speed.first_digit) != dashboard_controller::ErrorCode::Ok) {
+	if (this->empty_digit_handler(digits.at(0), 2, 5, this->system.speed.first_digit) != dashboard::ErrorCode::Ok) {
 		return this->error;
 	}
 
 	if (!this->system.speed.first_digit) {
 
-		if (this->empty_digit_handler(digits.at(1), 2, 6, this->system.speed.second_digit) != dashboard_controller::ErrorCode::Ok) {
+		if (this->empty_digit_handler(digits.at(1), 2, 6, this->system.speed.second_digit) != dashboard::ErrorCode::Ok) {
 			return this->error;
  		}
 	}
@@ -261,14 +261,14 @@ dashboard_controller::ErrorCode dashboard_controller::DashboardUi::speed_value_p
 		this->system.speed.second_digit = true;
 
 		if (this->dashboard_grid.cells_string_write(digit2_str_view, 2, 6) != grid_printer_interface::ErrorCode::Ok) {
-			this->error = dashboard_controller::ErrorCode::GridStringLoad;
+			this->error = dashboard::ErrorCode::GridStringLoad;
 			return this->error;
 		}
 	}
 
 	if (!this->system.speed.second_digit) {
 
-		if (this->empty_digit_handler(digits.at(2), 2, 7, this->system.speed.third_digit) != dashboard_controller::ErrorCode::Ok) {
+		if (this->empty_digit_handler(digits.at(2), 2, 7, this->system.speed.third_digit) != dashboard::ErrorCode::Ok) {
 			return this->error;
 		}
 	}
@@ -279,7 +279,7 @@ dashboard_controller::ErrorCode dashboard_controller::DashboardUi::speed_value_p
 		this->system.speed.third_digit = true;
 
 		if (this->dashboard_grid.cells_string_write(digit3_str_view, 2, 7) != grid_printer_interface::ErrorCode::Ok) {
-			this->error = dashboard_controller::ErrorCode::GridStringLoad;
+			this->error = dashboard::ErrorCode::GridStringLoad;
 			return this->error;
 		}
 	}
@@ -287,20 +287,20 @@ dashboard_controller::ErrorCode dashboard_controller::DashboardUi::speed_value_p
 	std::string_view digit4_str_view = digit_to_str_view(digits.at(3));
 
 	if (this->dashboard_grid.cells_string_write(digit4_str_view, 2, 8) != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridStringLoad;
+		this->error = dashboard::ErrorCode::GridStringLoad;
 		return this->error;
 	}
 
 	if (this->dashboard_grid.cells_print() != grid_printer_interface::ErrorCode::Ok) {
-		this->error = dashboard_controller::ErrorCode::GridPrint;
+		this->error = dashboard::ErrorCode::GridPrint;
 		return this->error;
 	}
 
-	this->error = dashboard_controller::ErrorCode::Ok;
+	this->error = dashboard::ErrorCode::Ok;
 	return this->error;
 }
 
-dashboard_controller::ErrorCode dashboard_controller::DashboardUi::error_get() const {
+dashboard::ErrorCode dashboard::Dashboard::error_get() const {
 	return this->error;
 }
 
