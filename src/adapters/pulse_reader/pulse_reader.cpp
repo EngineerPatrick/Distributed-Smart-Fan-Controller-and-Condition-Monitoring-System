@@ -137,6 +137,7 @@ pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_period_ns_g
 	last_capture = atomic_get(&(this->capture.last));
 
 	if (!atomic_get(&(this->system.second_capture)) || last_capture == this->capture.read) {
+		atomic_set(&(this->system.capture_reading), 0);
 		this->error = {pulse_reader_interface::ErrorCode::NewCaptureUnavailable, 0};
 		return this->error.code;
 	}
