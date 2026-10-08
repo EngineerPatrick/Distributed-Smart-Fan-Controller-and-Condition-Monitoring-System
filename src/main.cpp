@@ -7,7 +7,7 @@
 #include "grid_printer.hpp"
 #include "grid_printer_interface.hpp"
 
-#include "dashboard.hpp"
+#include "readings_reporter.hpp"
 
 #include "temperature_reader.hpp"
 #include "temperature_reader_interface.hpp"
@@ -59,7 +59,7 @@ int main(void) {
 
 	static fan_controller::FourWireFan arctic_p12_max{fan_pwm, fan_tachometer};
 
-	static dashboard::Dashboard readings_dashboard{dashboard_grid};
+	static readings_reporter::Dashboard controller_state{dashboard_grid};
 
 	std::array<fan_curve::Node, 10> sample_nodes{{
 		{250, 500}, {280, 1300}, {300, 2000}, {301, 2000}, {302, 2000},
