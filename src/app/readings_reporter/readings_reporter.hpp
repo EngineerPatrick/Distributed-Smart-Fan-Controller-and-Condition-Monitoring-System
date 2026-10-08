@@ -1,8 +1,8 @@
 /**
 *
-*	@file		dashboard.hpp
+*	@file		readings_reporter.hpp
 *
-*	@brief		Public API for the dashboard module
+*	@brief		Public API for the readings_reporter module
 *
 *	@details	Prints the UI on the dsplay
 *
@@ -10,23 +10,24 @@
 *
 */
 
-#ifndef DASHBOARD_HPP
-#define DASHBOARD_HPP
+#ifndef READINGS_REPORTER_HPP
+#define READINGS_REPORTER_HPP
 
 #include "grid_printer_interface.hpp"
 #include <cstddef>
 
-namespace dashboard {
+namespace readings_reporter {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
+		StructureUnready,
+		StructureReady,
+		ParamTemp,
+		ParamSpeed,
 		GridUnready,
-		FixedUiUnready,
 		GridClear,
 		GridStringLoad,
-		GridPrint,
-		ParamTemp,
-		ParamSpeed
+		GridPrint
 	};
 
 	class Dashboard {
@@ -45,13 +46,12 @@ namespace dashboard {
 			Dashboard& operator=(const Dashboard&) = delete;
 			Dashboard& operator=(Dashboard&&) = delete;
 
-			dashboard::ErrorCode structure_print();
-			dashboard::ErrorCode temp_value_print(int temp_c_x10);
-			dashboard::ErrorCode speed_value_print(unsigned int speed_rpm);
+			readings_reporter::ErrorCode structure_print();
+			readings_reporter::ErrorCode temp_value_print(int temp_c_x10);
+			readings_reporter::ErrorCode speed_value_print(unsigned int speed_rpm);
 
 			[[nodiscard("Called error getter and discarded its return value")]]
-			dashboard::ErrorCode error_get() const;
-
+			readings_reporter::ErrorCode error_get() const;
 
 		private:
 
@@ -68,17 +68,17 @@ namespace dashboard {
 
 			struct SystemState {
 				bool grid_ready = false;
-				bool structure = false;
-				dashboard::Dashboard::TempValueState temp;
-				dashboard::Dashboard::SpeedValueState speed;
+				bool structure_ready = false;
+				readings_reporter::Dashboard::TempValueState temp;
+				readings_reporter::Dashboard::SpeedValueState speed;
 			};
 
 			grid_printer_interface::DisplayGridInterface& dashboard_grid;
 
-			dashboard::Dashboard::SystemState system;
-			dashboard::ErrorCode error;
+			readings_reporter::Dashboard::SystemState system;
+			readings_reporter::ErrorCode error;
 
-			dashboard::ErrorCode empty_digit_handler(unsigned int& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag);
+			readings_reporter::ErrorCode empty_digit_handler(unsigned int& digit, const std::size_t row_idx, const std::size_t column_idx, bool& digit_flag);
 	};
 }
 
@@ -86,7 +86,7 @@ namespace dashboard {
 
 /**
 *
-*	@enum 		dashboard::ErrorCode
+*	@enum 		readings_reporter::ErrorCode
 *
 *	@brief		Error codes of the module
 *
@@ -94,7 +94,7 @@ namespace dashboard {
 
 /**
 *
-*	@fn 		dashboard::ErrorCode structure_print(grid_printer_interface::DisplayGridInterface& readings_grid)
+*	@fn 		readings_reporter::ErrorCode structure_print(grid_printer_interface::DisplayGridInterface& readings_grid)
 *
 *	@brief		Prints the fixed part of the UI on the display
 *
@@ -111,7 +111,7 @@ namespace dashboard {
 
 /**
 *
-*	@fn 		dashboard::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10)
+*	@fn 		readings_reporter::ErrorCode temp_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::int16_t temp_c_x10)
 *
 *	@brief		Prints the value of the tempearature reading on the display
 *
@@ -131,7 +131,7 @@ namespace dashboard {
 
 /**
 *
-*	@fn 		dashboard::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm)
+*	@fn 		readings_reporter::ErrorCode speed_value_print(grid_printer_interface::DisplayGridInterface& readings_grid, std::uint16_t speed_rpm)
 *
 *	@brief		Prints the value of the tempearature reading on the display
 *

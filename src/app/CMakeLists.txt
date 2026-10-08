@@ -1,3 +1,3 @@
-add_subdirectory(dashboard)
+add_subdirectory(readings_reporter)
 
 add_subdirectory(control_thread)
