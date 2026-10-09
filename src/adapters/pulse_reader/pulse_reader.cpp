@@ -22,13 +22,13 @@ void pulse_reader::PulseSignal::capture_callback(
 		)
 	);
 
-	if (!atomic_get(&(this_context_ptr->system.capture_reading))) {
+	if (atomic_get(&(this_context_ptr->system.save_copy))) {
 		atomic_set(&(this_context_ptr->capture_copy.current_timestamp_ticks), this_context_ptr->capture.current_timestamp_ticks);
 		atomic_set(&(this_context_ptr->capture_copy.previous_timestamp_ticks), this_context_ptr->capture.previous_timestamp_ticks);
 		atomic_set(&(this_context_ptr->capture.last), atomic_get(&(this_context_ptr->capture.last)) + 1);
 
 		if (atomic_get(&(this_context_ptr->capture.last)) == 2) {
-			atomic_set(&(this_context_ptr->system.second_capture), 1);
+			atomic_set(&(this_context_ptr->system.period_measure_ready), 1);
 		}
 	}
 }
@@ -40,7 +40,7 @@ counter{
 } {
 
 	if (!device_is_ready(this->counter.timer.dev)) {
-		this->error = {pulse_reader_interface::ErrorCode::DeviceUnready, 0};
+		this->error = {pulse_reader_interface::ErrorCode::ZDeviceUnready, 0};
 		return;
 	}
 
@@ -58,22 +58,27 @@ counter{
 		return;
 	}
 
-	this->system.capture_ready = true;
+	this->system.counter_capture_acquired = true;
 	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
+}
+
+pulse_reader::PulseSignal::~PulseSignal() {
+
+	if (this->system.counter_capture_acquired) {
+		counter_disable_capture_dt(&(this->counter.timer));
+	}
 }
 
 pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_start() {
 
-	if (!this->system.capture_ready) {
-		this->error = {pulse_reader_interface::ErrorCode::CaptureUnready, 0};
+	if (!this->system.counter_capture_acquired) {
+		this->error = {pulse_reader_interface::ErrorCode::CounterCaptureUnready, 0};
 		return this->error.code;
 	}
 
-	if (this->system.capture_running) {
-
-		if (this->capture_stop() != pulse_reader_interface::ErrorCode::Ok) {
-			return this->error.code;
-		}
+	if (this->system.counter_capture_ready) {
+		this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
+		return this->error.code;
 	}
 
 	this->error.return_value = counter_start(this->counter.timer.dev);
@@ -83,15 +88,15 @@ pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_start() {
 		return this->error.code;
 	}
 
-	this->system.capture_running = true;
+	this->system.counter_capture_ready = true;
 	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
 pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_stop() {
 
-	if (!this->system.capture_running) {
-		this->error = {pulse_reader_interface::ErrorCode::CaptureNotRunning, 0};
+	if (!this->system.counter_capture_ready) {
+		this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 		return this->error.code;
 	}
 
@@ -111,34 +116,34 @@ pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_stop() {
 
 	this->capture.read = 0;
 	atomic_set(&(this->capture.last), 0);
-	atomic_set(&(this->system.capture_reading), 0);
-	atomic_set(&(this->system.second_capture), 0);
+	atomic_set(&(this->system.save_copy), 1);
+	atomic_set(&(this->system.period_measure_ready), 0);
 	atomic_set(&(this->capture.current_timestamp_ticks), 0);
 	atomic_set(&(this->capture.previous_timestamp_ticks), 0);
 	atomic_set(&(this->capture_copy.current_timestamp_ticks), 0);
 	atomic_set(&(this->capture_copy.previous_timestamp_ticks), 0);
 
-	this->system.capture_running = false;
+	this->system.counter_capture_ready = false;
 	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
-pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_period_ns_get(unsigned long long int& capture_period_ns) {
+pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_period_measure(unsigned long long int& capture_period_ns) {
 	std::uint32_t last_capture = 0;
 	std::uint32_t current_timestamp_ticks = 0;
 	std::uint32_t previous_timestamp_ticks = 0;
 
-	if (!this->system.capture_running) {
-		this->error = {pulse_reader_interface::ErrorCode::CaptureNotRunning, 0};
+	if (!atomic_get(&(this->system.period_measure_ready))) {
+		this->error = {pulse_reader_interface::ErrorCode::PeriodMeasureUnready, 0};
 		return this->error.code;
 	}
 
-	atomic_set(&(this->system.capture_reading), 1);
+	atomic_set(&(this->system.save_copy), 0);
 	last_capture = atomic_get(&(this->capture.last));
 
-	if (!atomic_get(&(this->system.second_capture)) || last_capture == this->capture.read) {
-		atomic_set(&(this->system.capture_reading), 0);
-		this->error = {pulse_reader_interface::ErrorCode::NewCaptureUnavailable, 0};
+	if (last_capture == this->capture.read) {
+		atomic_set(&(this->system.save_copy), 1);
+		this->error = {pulse_reader_interface::ErrorCode::NewDataUnready, 0};
 		return this->error.code;
 	}
 
@@ -154,7 +159,7 @@ pulse_reader_interface::ErrorCode pulse_reader::PulseSignal::capture_period_ns_g
 	}
 
 	this->capture.read = last_capture;
-	atomic_set(&(this->system.capture_reading), 0);
+	atomic_set(&(this->system.save_copy), 1);
 	this->error = {pulse_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
