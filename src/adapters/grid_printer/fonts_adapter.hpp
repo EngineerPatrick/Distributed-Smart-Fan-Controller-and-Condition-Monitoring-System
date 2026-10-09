@@ -14,7 +14,7 @@
 #ifndef FONTS_ADAPTER_HPP
 #define FONTS_ADAPTER_HPP
 
-#define FONTS_NUMBER 3
+#define FONT_COUNT 3
 #define FONT_NAME_IDX_0 Small
 #define FONT_NAME_IDX_1 Medium
 #define FONT_NAME_IDX_2 Large
