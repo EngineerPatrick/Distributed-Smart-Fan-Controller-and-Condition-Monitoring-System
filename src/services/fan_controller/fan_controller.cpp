@@ -38,7 +38,7 @@ fan_controller::ErrorState fan_controller::FourWireFan::boot() {
 
 	if (!this->system.pwm_ready) {
 
-		if (this->pwm.signal.start(PERIOD_NS_FOR_25KHZ, PERIOD_NS_FOR_25KHZ / 2) != pwm_generator_interface::ErrorCode::Ok) {
+		if (this->pwm.signal.set(PERIOD_NS_FOR_25KHZ, PERIOD_NS_FOR_25KHZ / 2) != pwm_generator_interface::ErrorCode::Ok) {
 			this->error = {fan_controller::ErrorCode::SpecificError, fan_controller::ErrorCode::PwmStart, fan_controller::ErrorCode::Ok};
 			return this->error;
 		}
@@ -132,7 +132,7 @@ fan_controller::ErrorState fan_controller::FourWireFan::duty_cycle_update(unsign
 		return this->error;
 	}
 
-	if (this->pwm.signal.start(PERIOD_NS_FOR_25KHZ, (this->pwm.period_ns * duty_cycle_x100) / 100) != pwm_generator_interface::ErrorCode::Ok) {
+	if (this->pwm.signal.set(PERIOD_NS_FOR_25KHZ, (this->pwm.period_ns * duty_cycle_x100) / 100) != pwm_generator_interface::ErrorCode::Ok) {
 		this->error = {fan_controller::ErrorCode::SpecificError, fan_controller::ErrorCode::PwmStart, fan_controller::ErrorCode::Ok};
 		return this->error;
 	}
