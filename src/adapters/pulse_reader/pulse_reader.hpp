@@ -19,6 +19,7 @@ namespace pulse_reader {
 		public:
 
 			PulseSignal(const counter_capture_dt_spec timer_device, const counter_capture_flags_t additional_flags);
+			~PulseSignal() override;
 
 			/*
 			*
@@ -32,8 +33,8 @@ namespace pulse_reader {
 
 			pulse_reader_interface::ErrorCode capture_start() override;
 			pulse_reader_interface::ErrorCode capture_stop() override;
+			pulse_reader_interface::ErrorCode capture_period_measure(unsigned long long int& capture_period_ns) override;
 
-			pulse_reader_interface::ErrorCode capture_period_ns_get(unsigned long long int& capture_period_ns) override;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			pulse_reader_interface::ErrorState error_state_get() const override;
 
@@ -52,10 +53,10 @@ namespace pulse_reader {
 			};
 
 			struct SystemState {
-				bool capture_ready = false;
-				bool capture_running = false;
-				atomic_t second_capture = ATOMIC_INIT(0);
-				atomic_t capture_reading = ATOMIC_INIT(0);
+				bool counter_capture_acquired = false;
+				bool counter_capture_ready = false;
+				atomic_t period_measure_ready = ATOMIC_INIT(0);
+				atomic_t save_copy = ATOMIC_INIT(0);
 			};
 
 			pulse_reader::PulseSignal::CounterState counter;
