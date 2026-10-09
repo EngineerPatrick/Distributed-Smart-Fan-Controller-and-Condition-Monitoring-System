@@ -58,7 +58,7 @@ control_thread::ErrorCode control_thread::ControlThread::cycle() {
 		return this->error;
 	}
 
-	if (this->temperature_signal.value_read(temp_c_x100) != temperature_reader_interface::ErrorCode::Ok) {
+	if (this->temperature_signal.single_read(temp_c_x100) != temperature_reader_interface::ErrorCode::Ok) {
 		this->error = control_thread::ErrorCode::TemperatureReaderValue;
 		return this->error;
 	}

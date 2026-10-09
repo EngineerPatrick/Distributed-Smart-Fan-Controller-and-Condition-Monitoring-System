@@ -23,7 +23,7 @@ const struct sensor_decoder_api* const temperature_reader::TemperatureSignal::in
 	const struct sensor_decoder_api* decoder = {};
 
 	if (!device_is_ready(temperature_reader_ptr)) {
-		this->error = {temperature_reader_interface::ErrorCode::DeviceUnready, 0};
+		this->error = {temperature_reader_interface::ErrorCode::ZDeviceUnready, 0};
 		return nullptr;
 	}
 
@@ -34,7 +34,7 @@ const struct sensor_decoder_api* const temperature_reader::TemperatureSignal::in
 		return nullptr;
 	}
 
-	this->system.reading_ready = true;
+	this->system.sensor_acquired = true;
 	this->error = {temperature_reader_interface::ErrorCode::Ok, 0};
 	return decoder;
 }
@@ -45,12 +45,12 @@ sensor{{temperature_sensor_device.device_ptr},
 {temperature_sensor_device.ctx_ptr},
 {this->init_operations(temperature_sensor_device.device_ptr)}} {}
 
-temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::value_read(int& temp_c_x100) {
+temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::single_read(int& temp_c_x100) {
 	std::uint8_t rx_buff[128];
 	std::uint32_t fit = 0;
 
-	if (!this->system.reading_ready) {
-		this->error = {temperature_reader_interface::ErrorCode::ReadingUnready, 0};
+	if (!this->system.sensor_acquired) {
+		this->error = {temperature_reader_interface::ErrorCode::SensorUnready, 0};
 		return this->error.code;
 	}
 
@@ -87,6 +87,10 @@ temperature_reader_interface::ErrorCode temperature_reader::TemperatureSignal::v
 
 	this->error = {temperature_reader_interface::ErrorCode::Ok, 0};
 	return this->error.code;
+}
+
+void temperature_reader::TemperatureSignal::value_get(int& temp_c_x100) const {
+	temp_c_x100 = this->reading.temp_c_x100;
 }
 
 temperature_reader_interface::ErrorState temperature_reader::TemperatureSignal::error_state_get() const {
