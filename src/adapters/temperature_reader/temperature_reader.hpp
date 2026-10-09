@@ -57,8 +57,9 @@ namespace temperature_reader {
 			TemperatureSignal& operator=(const TemperatureSignal&) = delete;
 			TemperatureSignal& operator=(TemperatureSignal&&) = delete;
 
-			temperature_reader_interface::ErrorCode value_read(int& temp_c_x100) override;
+			temperature_reader_interface::ErrorCode single_read(int& temp_c_x100) override;
 
+			void value_get(int& temp_c_x100) const override;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			temperature_reader_interface::ErrorState error_state_get() const override;
 
@@ -72,7 +73,7 @@ namespace temperature_reader {
 			};
 
 			struct SystemState {
-				bool reading_ready = false;
+				bool sensor_acquired = false;
 			};
 
 			struct ReadingState {
