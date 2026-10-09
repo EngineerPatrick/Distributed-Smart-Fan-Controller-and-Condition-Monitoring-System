@@ -103,7 +103,7 @@ fan_controller::ErrorState fan_controller::FourWireFan::speed_measure(unsigned i
 		return this->error;
 	}
 
-	if (this->tachometer.signal.capture_period_ns_get(tachometer_period_ns) != pulse_reader_interface::ErrorCode::Ok || !tachometer_period_ns) {
+	if (this->tachometer.signal.capture_period_measure(tachometer_period_ns) != pulse_reader_interface::ErrorCode::Ok || !tachometer_period_ns) {
 		this->error = {fan_controller::ErrorCode::SpecificError, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::TachometerCapture};
 		return this->error;
 	}

@@ -5,10 +5,10 @@ namespace pulse_reader_interface {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DeviceUnready,
-		CaptureUnready,
-		CaptureNotRunning,
-		NewCaptureUnavailable,
+		CounterCaptureUnready,
+		NewDataUnready,
+		PeriodMeasureUnready,
+		ZDeviceUnready,
 		ZCounterCaptureConfigure,
 		ZCounterCaptureEnable,
 		ZCounterStart,
@@ -27,8 +27,8 @@ namespace pulse_reader_interface {
 
 			virtual pulse_reader_interface::ErrorCode capture_start() = 0;
 			virtual pulse_reader_interface::ErrorCode capture_stop() = 0;
+			virtual pulse_reader_interface::ErrorCode capture_period_measure(unsigned long long int& capture_period_ns) = 0;
 
-			virtual pulse_reader_interface::ErrorCode capture_period_ns_get(unsigned long long int& capture_period_ns) = 0;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			virtual pulse_reader_interface::ErrorState error_state_get() const = 0;
 
