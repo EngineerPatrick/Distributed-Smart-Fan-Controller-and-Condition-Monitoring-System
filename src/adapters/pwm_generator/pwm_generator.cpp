@@ -20,17 +20,17 @@ pwm_generator::PwmSignal::PwmSignal (struct pwm_dt_spec timer_device) :
 timer{timer_device} {
 
 	if (!pwm_is_ready_dt(&(this->timer))) {
-		this->error = {pwm_generator_interface::ErrorCode::DeviceUnready, 0};
+		this->error = {pwm_generator_interface::ErrorCode::ZDeviceUnready, 0};
 		return;
 	}
 
-	this->system.pwm_ready = true;
+	this->system.pwm_acquired = true;
 	this->error = {pwm_generator_interface::ErrorCode::Ok, 0};
 }
 
-pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::start(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) {
+pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::set(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) {
 
-	if (!this->system.pwm_ready) {
+	if (!this->system.pwm_acquired) {
 		this->error = {pwm_generator_interface::ErrorCode::PwmUnready, 0};
 		return this->error.code;
 	}
@@ -48,15 +48,15 @@ pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::start(unsigned long
 	}
 
 	this->waveform = {waveform_period_ns, waveform_pulse_width_ns};
-	this->system.pwm_running = true;
+	this->system.pwm_ready = true;
 	this->error = {pwm_generator_interface::ErrorCode::Ok, 0};
 	return this->error.code;
 }
 
 pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::stop() {
 
-	if (!this->system.pwm_running) {
-		this->error = {pwm_generator_interface::ErrorCode::PwmNotRunning, 0};
+	if (!this->system.pwm_ready) {
+		this->error = {pwm_generator_interface::ErrorCode::Ok, 0};
 		return this->error.code;
 	}
 
@@ -68,9 +68,14 @@ pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::stop() {
 	}
 
 	this->waveform.pulse_width_ns = 0;
-	this->system.pwm_running = false;
+	this->system.pwm_ready = false;
 	this->error = {pwm_generator_interface::ErrorCode::Ok, 0};
 	return this->error.code;
+}
+
+void pwm_generator::PwmSignal::params_get(unsigned long long int& waveform_period_ns, unsigned long long int& waveform_pulse_width_ns) const {
+	waveform_period_ns = this->waveform.period_ns;
+	waveform_pulse_width_ns = this->waveform.pulse_width_ns;
 }
 
 pwm_generator_interface::ErrorState pwm_generator::PwmSignal::error_state_get() const {

@@ -1,14 +1,13 @@
-#ifndef PWM_CONTROLLER_INTERFACE_HPP
-#define PWM_CONTROLLER_INTERFACE_HPP
+#ifndef PWM_GENERATOR_INTERFACE_HPP
+#define PWM_GENERATOR_INTERFACE_HPP
 
 namespace pwm_generator_interface {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DeviceUnready,
 		PwmUnready,
 		ParamWaveform,
-		PwmNotRunning,
+		ZDeviceUnready,
 		ZPwmSet
 	};
 
@@ -21,9 +20,10 @@ namespace pwm_generator_interface {
 
 		public:
 
-			virtual pwm_generator_interface::ErrorCode start(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) = 0;
+			virtual pwm_generator_interface::ErrorCode set(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) = 0;
 			virtual pwm_generator_interface::ErrorCode stop() = 0;
 
+			virtual void params_get(unsigned long long int& waveform_period_ns, unsigned long long int& waveform_pulse_width_ns) const = 0;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			virtual pwm_generator_interface::ErrorState error_state_get() const = 0;
 
