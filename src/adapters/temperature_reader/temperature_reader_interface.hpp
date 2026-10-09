@@ -5,8 +5,8 @@ namespace temperature_reader_interface {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DeviceUnready,
-		ReadingUnready,
+		SensorUnready,
+		ZDeviceUnready,
 		ZSensorDecoderGet,
 		ZSensorRead,
 		ZSensorDecode
@@ -21,8 +21,9 @@ namespace temperature_reader_interface {
 
 		public:
 
-			virtual temperature_reader_interface::ErrorCode value_read(int& temp_c_x100) = 0;
+			virtual temperature_reader_interface::ErrorCode single_read(int& temp_c_x100) = 0;
 
+			virtual void value_get(int& temp_c_x100) const = 0;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			virtual temperature_reader_interface::ErrorState error_state_get() const = 0;
 
