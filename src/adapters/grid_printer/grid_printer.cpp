@@ -13,7 +13,7 @@ grid_printer::DisplayGrid::DisplayState grid_printer::DisplayGrid::init_operatio
 	std::size_t display_height_px = 0;
 
 	if (!device_is_ready(display_device_ptr)) {
-		this->error = {grid_printer_interface::ErrorCode::DeviceUnready, 0, 0, 0};
+		this->error = {grid_printer_interface::ErrorCode::ZDeviceUnready, 0, 0, 0};
 		return {};
 	}
 
@@ -26,7 +26,7 @@ grid_printer::DisplayGrid::DisplayState grid_printer::DisplayGrid::init_operatio
 		return {};
 	}
 
-	this->system.cfb_init = true;
+	this->system.character_framebuffer_acquired = true;
 
 	display_width_px = static_cast<std::size_t>(cfb_get_display_parameter(display_device_ptr, CFB_DISPLAY_WIDTH));
 	display_height_px = static_cast<std::size_t>(cfb_get_display_parameter(display_device_ptr, CFB_DISPLAY_HEIGHT));
@@ -38,32 +38,40 @@ grid_printer::DisplayGrid::DisplayState grid_printer::DisplayGrid::init_operatio
 
 	grid_printer::DisplayGrid::DisplayState display{{display_device_ptr}, {display_width_px}, {display_height_px}};
 
-	this->system.cfb_ready = true;
+	this->system.character_framebuffer_ready = true;
 	this->error = {grid_printer_interface::ErrorCode::Ok, 0, 0, 0};
 	return display;
 
 }
 
 grid_printer_interface::ErrorCode grid_printer::DisplayGrid::font_set(grid_printer_interface::FontName font_name) {
+	std::uint8_t font_idx = 0;
 
-	if (!this->system.cfb_ready) {
+	if (!this->system.character_framebuffer_ready) {
 		this->error = {grid_printer_interface::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
 
-	this->system.text_ready = false;
-
-	for (std::size_t font_idx = 0; font_idx < this->font_list.size(); font_idx++) {
+	for (; font_idx < this->font_list.size(); font_idx++) {
 
 		if (font_name == this->font_list.at(font_idx)) {
-			this->font.idx = font_idx;
+			break;
 		}
 	}
 
-	if (this->font.idx >= cfb_get_numof_fonts(this->display.device_ptr)) {
+	if (font_idx >= cfb_get_numof_fonts(this->display.device_ptr)) {
 		this->error = {grid_printer_interface::ErrorCode::ParamFontIndex, 0, 0, 0};
 		return this->error.code;
 	}
+
+	if (this->font.idx == font_idx) {
+		this->error = {grid_printer_interface::ErrorCode::Ok, 0, 0, 0};
+		return this->error.code;
+	}
+
+	this->font.idx = font_idx;
+
+	this->system.text_ready = false;
 
 	this->error.return_value = cfb_framebuffer_set_font(this->display.device_ptr, this->font.idx);
 
@@ -105,7 +113,7 @@ grid_printer_interface::ErrorCode grid_printer::DisplayGrid::font_set(grid_print
 grid_printer::DisplayGrid::DisplayGrid(const struct device* const display_device_ptr) :
 display{init_operations(display_device_ptr)} {
 
-	if (!this->system.cfb_ready) {
+	if (!this->system.character_framebuffer_ready) {
 		return;
 	}
 
@@ -127,14 +135,14 @@ display{init_operations(display_device_ptr)} {
 
 grid_printer::DisplayGrid::~DisplayGrid() {
 
-	if (this->system.cfb_init) {
+	if (this->system.character_framebuffer_acquired) {
 		cfb_framebuffer_deinit(this->display.device_ptr);
 	}
 }
 
 grid_printer_interface::ErrorCode grid_printer::DisplayGrid::cells_clear() {
 
-	if (!this->system.cfb_ready) {
+	if (!this->system.character_framebuffer_ready) {
 		this->error = {grid_printer_interface::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
@@ -194,7 +202,7 @@ grid_printer_interface::ErrorCode grid_printer::DisplayGrid::cells_string_write(
 
 grid_printer_interface::ErrorCode grid_printer::DisplayGrid::cells_print() {
 
-	if (!this->system.cfb_ready) {
+	if (!this->system.character_framebuffer_ready) {
 		this->error = {grid_printer_interface::ErrorCode::CfbUnready, 0, 0, 0};
 		return this->error.code;
 	}
@@ -210,6 +218,11 @@ grid_printer_interface::ErrorCode grid_printer::DisplayGrid::cells_print() {
 
 	this->error = {grid_printer_interface::ErrorCode::Ok, 0, 0, 0};
 	return this->error.code;
+}
+
+void grid_printer::DisplayGrid::grid_sizes_get(std::size_t& grid_width_cells, std::size_t& grid_height_cells) const {
+	grid_width_cells = this->grid.width_cells;
+	grid_height_cells = this->grid.height_cells;
 }
 
 grid_printer_interface::ErrorState grid_printer::DisplayGrid::error_state_get() const {

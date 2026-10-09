@@ -9,13 +9,13 @@ namespace grid_printer_interface {
 
 	enum class [[nodiscard("Discarding an error of this type may result in a bug")]] ErrorCode {
 		Ok,
-		DeviceUnready,
 		CfbUnready,
 		TextUnready,
 		DisplayResolution,
 		ParamGridCoordinates,
 		ParamStringLength,
 		ParamFontIndex,
+		ZDeviceUnready,
 		ZCfbInit,
 		ZCfbFontSet,
 		ZCfbFontSizeGet,
@@ -44,7 +44,9 @@ namespace grid_printer_interface {
 			virtual grid_printer_interface::ErrorCode cells_string_write(const std::string_view input_string, const std::size_t row_idx, const std::size_t column_idx) = 0;
 			virtual grid_printer_interface::ErrorCode cells_print() = 0;
 
-			[[nodiscard("Called error getter and discarded its return value")]] virtual grid_printer_interface::ErrorState error_state_get() const = 0;
+			virtual void grid_sizes_get(std::size_t& grid_width_cells, std::size_t& grid_height_cells) const = 0;
+			[[nodiscard("Called error getter and discarded its return value")]]
+			virtual grid_printer_interface::ErrorState error_state_get() const = 0;
 
 		protected:
 

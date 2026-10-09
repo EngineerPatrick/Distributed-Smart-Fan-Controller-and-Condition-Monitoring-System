@@ -34,14 +34,15 @@ namespace grid_printer {
 			grid_printer_interface::ErrorCode cells_string_write(const std::string_view input_string, const std::size_t row_idx, const std::size_t column_idx) override;
 			grid_printer_interface::ErrorCode cells_print() override;
 
+			void grid_sizes_get(std::size_t& grid_width_cells, std::size_t& grid_height_cells) const override;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			grid_printer_interface::ErrorState error_state_get() const override;
 
 		private:
 
 			struct SystemState {
-				bool cfb_init = false;
-				bool cfb_ready = false;
+				bool character_framebuffer_acquired = false;
+				bool character_framebuffer_ready = false;
 				bool text_ready = false;
 			};
 
