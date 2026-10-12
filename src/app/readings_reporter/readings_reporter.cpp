@@ -26,19 +26,19 @@ dashboard_grid{dashboard_grid} {
 		return;
 	}
 
-	this->system.grid_ready = true;
+	this->system.grid_acquired = true;
 	this->error = readings_reporter::ErrorCode::Ok;
 }
 
 readings_reporter::ErrorCode readings_reporter::Dashboard::structure_print() {
 
-	if (!this->system.grid_ready) {
+	if (!this->system.grid_acquired) {
 		this->error = readings_reporter::ErrorCode::GridUnready;
 		return this->error;
 	}
 
-	if (!this->system.structure_ready) {
-		this->error = readings_reporter::ErrorCode::StructureReady;
+	if (this->system.structure_ready) {
+		this->error = readings_reporter::ErrorCode::Ok;
 		return this->error;
 	}
 
@@ -185,29 +185,36 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::temp_value_print(int 
 		return this->error;
 	}
 
-	if (temp_c_x10 < 0 && !this->system.temp.negative_sign) {
+	if (temp_c_x10 == this->temp.value_c_x10) {
+		this->error = readings_reporter::ErrorCode::Ok;
+		return this->error;
+	}
+
+	this->temp.value_c_x10 = temp_c_x10;
+
+	if (temp_c_x10 < 0 && !this->temp.negative_sign) {
 
 			if (this->dashboard_grid.cells_string_write("-", 1, 3) != grid_printer_interface::ErrorCode::Ok) {
 				this->error = readings_reporter::ErrorCode::GridStringLoad;
 				return this->error;
 			}
 
-			this->system.temp.negative_sign = true;
+			this->temp.negative_sign = true;
 	}
 
-	else if (temp_c_x10 >= 0 && this->system.temp.negative_sign) {
+	else if (temp_c_x10 >= 0 && this->temp.negative_sign) {
 
 			if (this->dashboard_grid.cells_string_write(" ", 1, 3) != grid_printer_interface::ErrorCode::Ok) {
 				this->error = readings_reporter::ErrorCode::GridStringLoad;
 				return this->error;
 			}
 
-			this->system.temp.negative_sign = false;
+			this->temp.negative_sign = false;
 	}
 
 	digits_extract(temp_c_x10, digits);
 
-	if (this->empty_digit_handler(digits.at(0), 1, 4, this->system.temp.first_digit) != readings_reporter::ErrorCode::Ok) {
+	if (this->empty_digit_handler(digits.at(0), 1, 4, this->temp.first_digit) != readings_reporter::ErrorCode::Ok) {
 		return this->error;
 	}
 
@@ -247,15 +254,22 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::speed_value_print(uns
 		return this->error;
 	}
 
-	digits_extract(speed_rpm, digits);
-
-	if (this->empty_digit_handler(digits.at(0), 2, 5, this->system.speed.first_digit) != readings_reporter::ErrorCode::Ok) {
+	if (speed_rpm == this->speed.value_rpm) {
+		this->error = readings_reporter::ErrorCode::Ok;
 		return this->error;
 	}
 
-	if (!this->system.speed.first_digit) {
+	this->speed.value_rpm = speed_rpm;
 
-		if (this->empty_digit_handler(digits.at(1), 2, 6, this->system.speed.second_digit) != readings_reporter::ErrorCode::Ok) {
+	digits_extract(speed_rpm, digits);
+
+	if (this->empty_digit_handler(digits.at(0), 2, 5, this->speed.first_digit) != readings_reporter::ErrorCode::Ok) {
+		return this->error;
+	}
+
+	if (!this->speed.first_digit) {
+
+		if (this->empty_digit_handler(digits.at(1), 2, 6, this->speed.second_digit) != readings_reporter::ErrorCode::Ok) {
 			return this->error;
  		}
 	}
@@ -263,7 +277,7 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::speed_value_print(uns
 	else {
 		std::string_view digit2_str_view = digit_to_str_view(digits.at(1));
 
-		this->system.speed.second_digit = true;
+		this->speed.second_digit = true;
 
 		if (this->dashboard_grid.cells_string_write(digit2_str_view, 2, 6) != grid_printer_interface::ErrorCode::Ok) {
 			this->error = readings_reporter::ErrorCode::GridStringLoad;
@@ -271,9 +285,9 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::speed_value_print(uns
 		}
 	}
 
-	if (!this->system.speed.second_digit) {
+	if (!this->speed.second_digit) {
 
-		if (this->empty_digit_handler(digits.at(2), 2, 7, this->system.speed.third_digit) != readings_reporter::ErrorCode::Ok) {
+		if (this->empty_digit_handler(digits.at(2), 2, 7, this->speed.third_digit) != readings_reporter::ErrorCode::Ok) {
 			return this->error;
 		}
 	}
@@ -281,7 +295,7 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::speed_value_print(uns
 	else {
 		std::string_view digit3_str_view = digit_to_str_view(digits.at(2));
 
-		this->system.speed.third_digit = true;
+		this->speed.third_digit = true;
 
 		if (this->dashboard_grid.cells_string_write(digit3_str_view, 2, 7) != grid_printer_interface::ErrorCode::Ok) {
 			this->error = readings_reporter::ErrorCode::GridStringLoad;
