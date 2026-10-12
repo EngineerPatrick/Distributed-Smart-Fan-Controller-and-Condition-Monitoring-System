@@ -63,7 +63,7 @@ control_thread::ErrorCode control_thread::ControlThread::cycle() {
 		return this->error;
 	}
 
-	if (this->fan_curve.target_speed_rpm_get(temp_c_x100 / 10, target_speed_rpm) != fan_curve::ErrorCode::Ok) {
+	if (this->fan_curve.target_speed_compute(temp_c_x100 / 10, target_speed_rpm) != fan_curve::ErrorCode::Ok) {
 		this->error = control_thread::ErrorCode::FanCurveSpeedGet;
 		return this->error;
  	}

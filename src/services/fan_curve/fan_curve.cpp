@@ -36,7 +36,7 @@ nodes{fan_curve_nodes} {
 	this->error = fan_curve::ErrorCode::Ok;
 }
 
-fan_curve::ErrorCode fan_curve::FanCurve::target_speed_rpm_get(int measured_temp_c_x10, unsigned int& target_speed_rpm) {
+fan_curve::ErrorCode fan_curve::FanCurve::target_speed_compute(int measured_temp_c_x10, unsigned int& target_speed_rpm) {
 	unsigned int dx = 0;
 	unsigned int dy = 0;
 	unsigned int dT = 0;
