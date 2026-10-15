@@ -23,6 +23,7 @@
 #include "fan_curve.hpp"
 
 #include "control_thread.hpp"
+#include "report_thread.hpp"
 
 #include <cstdint>
 #include <array>
@@ -69,6 +70,8 @@ int main(void) {
 	static fan_curve::FanCurve sample_curve{sample_nodes};
 
 	static control_thread::ControlThread feedback_controller{arctic_p12_max, room_temperature, sample_curve};
+
+	static report_thread::ReportThread report_updater{controller_state};
 
 	while (1) {}
 
