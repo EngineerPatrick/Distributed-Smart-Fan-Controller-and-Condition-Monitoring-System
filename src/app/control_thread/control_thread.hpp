@@ -42,7 +42,7 @@ namespace control_thread {
 			ControlThread& operator=(ControlThread&&) = delete;
 
 			control_thread::ErrorCode boot();
-			control_thread::ErrorCode cycle();
+			control_thread::ErrorCode cycle(int& temp_c_x100, unsigned int& measured_speed_rpm, unsigned int& target_speed_rpm);
 			control_thread::ErrorCode stop();
 
 			[[nodiscard("Called error getter and discarded its return value")]]
@@ -51,7 +51,9 @@ namespace control_thread {
 		private:
 
 			struct SystemState {
-				bool boot_ready = false;
+				bool control_fan_acquired = false;
+				bool temperature_signal_acquired = false;
+				bool fan_curve_acquired = false;
 				bool cycle_ready = false;
 			};
 
@@ -61,7 +63,7 @@ namespace control_thread {
 
 			control_thread::ControlThread::SystemState system;
 
-			control_thread::ErrorCode error;
+			control_thread::ErrorCode error = control_thread::ErrorCode::Ok;
 
 	};
 }

@@ -17,23 +17,27 @@ fan_curve{fan_curve} {
 		return;
 	}
 
+	this->system.control_fan_acquired = true;
+
 	if (this->temperature_signal.error_state_get().code != temperature_reader_interface::ErrorCode::Ok) {
 		this->error = control_thread::ErrorCode::TemperatureReaderUnready;
 		return;
 	}
+
+	this->system.temperature_signal_acquired = true;
 
 	if (this->fan_curve.error_get() != fan_curve::ErrorCode::Ok) {
 		this->error = control_thread::ErrorCode::FanCurveUnready;
 		return;
 	}
 
-	this->system.boot_ready = true;
+	this->system.fan_curve_acquired = true;
 	this->error = control_thread::ErrorCode::Ok;
 }
 
 control_thread::ErrorCode control_thread::ControlThread::boot() {
 
-	if (!this->system.boot_ready) {
+	if (!this->system.control_fan_acquired || !this->system.temperature_signal_acquired || !this->system.fan_curve_acquired) {
 		this->error = control_thread::ErrorCode::BootUnready;
 		return this->error;
 	}
@@ -48,10 +52,7 @@ control_thread::ErrorCode control_thread::ControlThread::boot() {
 	return this->error;
 }
 
-control_thread::ErrorCode control_thread::ControlThread::cycle() {
-	int temp_c_x100 = 0;
-	unsigned int measured_speed_rpm = 0;
-	unsigned int target_speed_rpm = 0;
+control_thread::ErrorCode control_thread::ControlThread::cycle(int& temp_c_x100, unsigned int& measured_speed_rpm, unsigned int& target_speed_rpm) {
 
 	if (!this->system.cycle_ready) {
 		this->error = control_thread::ErrorCode::CycleUnready;
