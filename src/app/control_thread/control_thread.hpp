@@ -14,6 +14,7 @@ namespace control_thread {
 		ControlFanUnready,
 		ControlFanBoot,
 		ControlFanStop,
+		ControlFanSpeedUnready,
 		ControlFanSpeedMeasure,
 		TemperatureReaderUnready,
 		TemperatureReaderValue,

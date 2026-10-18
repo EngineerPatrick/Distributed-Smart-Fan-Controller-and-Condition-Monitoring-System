@@ -53,6 +53,7 @@ control_thread::ErrorCode control_thread::ControlThread::boot() {
 }
 
 control_thread::ErrorCode control_thread::ControlThread::cycle(int& temp_c_x100, unsigned int& measured_speed_rpm, unsigned int& target_speed_rpm) {
+	fan_controller::ErrorCode fan_controller_error = fan_controller::ErrorCode::Ok;
 
 	if (!this->system.cycle_ready) {
 		this->error = control_thread::ErrorCode::CycleUnready;
@@ -69,7 +70,14 @@ control_thread::ErrorCode control_thread::ControlThread::cycle(int& temp_c_x100,
 		return this->error;
  	}
 
-	if (this->control_fan.speed_measure(measured_speed_rpm).general != fan_controller::ErrorCode::Ok) {
+	fan_controller_error = this->control_fan.speed_measure(measured_speed_rpm).general;
+
+	if (fan_controller_error == fan_controller::ErrorCode::NewSpeedUnready) {
+		this->error = control_thread::ErrorCode::ControlFanSpeedUnready;
+		return this->error;
+	}
+
+	if (fan_controller_error != fan_controller::ErrorCode::Ok) {
 		this->error = control_thread::ErrorCode::ControlFanSpeedMeasure;
 		return this->error;
 	}

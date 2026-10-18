@@ -97,13 +97,21 @@ fan_controller::ErrorState fan_controller::FourWireFan::stop() {
 
 fan_controller::ErrorState fan_controller::FourWireFan::speed_measure(unsigned int& measured_speed_rpm) {
 	unsigned long long int tachometer_period_ns = 0;
+	pulse_reader_interface::ErrorCode pulse_reader_error = pulse_reader_interface::ErrorCode::Ok;
 
 	if (!(this->system.pwm_ready && this->system.tachometer_ready)) {
 		this->error = {fan_controller::ErrorCode::SpeedMeasureUnready, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok};
 		return this->error;
 	}
 
-	if (this->tachometer.signal.capture_period_measure(tachometer_period_ns) != pulse_reader_interface::ErrorCode::Ok || !tachometer_period_ns) {
+	pulse_reader_error = this->tachometer.signal.capture_period_measure(tachometer_period_ns);
+
+	if (pulse_reader_error == pulse_reader_interface::ErrorCode::NewDataUnready) {
+		this->error = {fan_controller::ErrorCode::NewSpeedUnready, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok};
+		return this->error;
+	}
+
+	if (pulse_reader_error != pulse_reader_interface::ErrorCode::Ok || !tachometer_period_ns) {
 		this->error = {fan_controller::ErrorCode::SpecificError, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::TachometerCapture};
 		return this->error;
 	}

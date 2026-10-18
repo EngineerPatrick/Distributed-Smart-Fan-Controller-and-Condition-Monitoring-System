@@ -14,6 +14,7 @@ namespace fan_controller {
 		FanUnready,
 		SpeedMeasureUnready,
 		DutyCycleUpdateUnready,
+		NewSpeedUnready,
 		ParamDutyCycle,
 		PwmUnready,
 		PwmStart,
