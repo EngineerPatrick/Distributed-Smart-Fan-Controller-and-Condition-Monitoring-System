@@ -4,9 +4,10 @@
 
 fan_controller::FourWireFan::FourWireFan(
 	pwm_generator_interface::PwmSignalInterface& fan_pwm,
-	pulse_reader_interface::PulseSignalInterface& fan_tachometer
+	pulse_reader_interface::PulseSignalInterface& fan_tachometer,
+	fan_controller::FanMetricsState fan_metrics
 ) :
-pwm{fan_pwm}, tachometer{fan_tachometer} {
+pwm{fan_pwm}, tachometer{fan_tachometer}, metrics{fan_metrics} {
 
 	if (this->pwm.signal.error_state_get().code != pwm_generator_interface::ErrorCode::Ok) {
 		this->error = {fan_controller::ErrorCode::SpecificError, fan_controller::ErrorCode::PwmUnready, fan_controller::ErrorCode::Ok};
@@ -87,7 +88,8 @@ fan_controller::ErrorState fan_controller::FourWireFan::stop() {
 		}
 
 		else {
-			this->tachometer.speed_rpm = 0;
+			this->tachometer.current_speed_rpm = 0;
+			this->tachometer.previous_speed_rpm = 0;
 			this->system.tachometer_ready = false;
 		}
 	}
@@ -96,8 +98,8 @@ fan_controller::ErrorState fan_controller::FourWireFan::stop() {
 }
 
 fan_controller::ErrorState fan_controller::FourWireFan::speed_measure(unsigned int& measured_speed_rpm) {
-	unsigned long long int tachometer_period_ns = 0;
 	pulse_reader_interface::ErrorCode pulse_reader_error = pulse_reader_interface::ErrorCode::Ok;
+	unsigned long long int tachometer_period_ns = 0;
 
 	if (!(this->system.pwm_ready && this->system.tachometer_ready)) {
 		this->error = {fan_controller::ErrorCode::SpeedMeasureUnready, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok};
@@ -116,8 +118,32 @@ fan_controller::ErrorState fan_controller::FourWireFan::speed_measure(unsigned i
 		return this->error;
 	}
 
-	this->tachometer.speed_rpm = static_cast<unsigned int>(60000000000ULL / (tachometer_period_ns * 2));
-	measured_speed_rpm = this->tachometer.speed_rpm;
+	this->tachometer.previous_speed_rpm = this->tachometer.current_speed_rpm;
+	this->tachometer.current_speed_rpm = static_cast<unsigned int>(60000000000ULL / (tachometer_period_ns * 2));
+
+	if (this->tachometer.previous_speed_rpm <= this->tachometer.current_speed_rpm) {
+
+		if (this->tachometer.current_speed_rpm - this->tachometer.previous_speed_rpm > this->metrics.acceleration_per_dc_step) {
+			this->tachometer.current_speed_rpm = this->tachometer.previous_speed_rpm + this->metrics.acceleration_per_dc_step;
+		}
+	}
+
+	else {
+
+		if (this->tachometer.previous_speed_rpm - this->tachometer.current_speed_rpm > this->metrics.acceleration_per_dc_step) {
+			this->tachometer.current_speed_rpm = this->tachometer.previous_speed_rpm - this->metrics.acceleration_per_dc_step;
+		}
+	}
+
+	if (this->tachometer.current_speed_rpm > this->metrics.max_speed_rpm) {
+		this->tachometer.current_speed_rpm = this->metrics.max_speed_rpm;
+	}
+
+	else if (this->tachometer.current_speed_rpm < this->metrics.min_speed_rpm) {
+		this->tachometer.current_speed_rpm = this->metrics.min_speed_rpm;
+	}
+
+	measured_speed_rpm = this->tachometer.current_speed_rpm;
 
 	this->error = {fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok};
  	return this->error;
@@ -131,7 +157,7 @@ fan_controller::ErrorState fan_controller::FourWireFan::duty_cycle_update(unsign
 	}
 
 	if (duty_cycle_x100 > 100) {
-		this->error = {fan_controller::ErrorCode::SpecificError, fan_controller::ErrorCode::ParamDutyCycle, fan_controller::ErrorCode::Ok};
+		this->error = {fan_controller::ErrorCode::ParamDutyCycle, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok};
 		return this->error;
 	}
 
@@ -154,7 +180,11 @@ fan_controller::ErrorState fan_controller::FourWireFan::duty_cycle_update(unsign
 void fan_controller::FourWireFan::params_get(unsigned long long int& period_ns, unsigned int& duty_cycle_x100, unsigned int& speed_rpm) const {
 	period_ns = this->pwm.period_ns;
 	duty_cycle_x100 = this->pwm.duty_cycle_x100;
-	speed_rpm = this->tachometer.speed_rpm;
+	speed_rpm = this->tachometer.current_speed_rpm;
+}
+
+fan_controller::FanMetricsState fan_controller::FourWireFan::metrics_get() const {
+	return this->metrics;
 }
 
 fan_controller::ErrorState fan_controller::FourWireFan::error_state_get() const {

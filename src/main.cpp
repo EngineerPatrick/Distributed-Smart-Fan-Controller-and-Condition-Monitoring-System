@@ -59,7 +59,7 @@ int main(void) {
 
 	static pulse_reader::PulseSignal fan_tachometer{INPUT_CAPTURE_TIMER_DEVICE(FAN0_ALIAS), COUNTER_CAPTURE_ADDITIONAL_FLAGS};
 
-	static fan_controller::FourWireFan arctic_p12_max{fan_pwm, fan_tachometer};
+	static fan_controller::FourWireFan arctic_p12_max{fan_pwm, fan_tachometer, {{300}, {3300}, {400}}};
 
 	static readings_reporter::Dashboard controller_state{dashboard_grid};
 

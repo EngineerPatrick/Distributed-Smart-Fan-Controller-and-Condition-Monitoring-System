@@ -31,11 +31,21 @@ namespace fan_controller {
 		fan_controller::ErrorCode tachometer = fan_controller::ErrorCode::Ok;
 	};
 
+	struct FanMetricsState {
+		const unsigned int acceleration_per_dc_step = 0;
+		const unsigned int max_speed_rpm = 0;
+		const unsigned int min_speed_rpm = 0;
+	};
+
 	class FourWireFan {
 
 		public:
 
-			explicit FourWireFan(pwm_generator_interface::PwmSignalInterface& fan_pwm, pulse_reader_interface::PulseSignalInterface& fan_tachometer);
+			explicit FourWireFan(
+				pwm_generator_interface::PwmSignalInterface& fan_pwm,
+				pulse_reader_interface::PulseSignalInterface& fan_tachometer,
+				fan_controller::FanMetricsState fan_metrics
+			);
 
 			/*
 			*
@@ -53,6 +63,7 @@ namespace fan_controller {
 			fan_controller::ErrorState duty_cycle_update(unsigned int duty_cycle_x100);
 
 			void params_get(unsigned long long int& period_ns, unsigned int& duty_cycle_x100, unsigned int& speed_rpm) const;
+			fan_controller::FanMetricsState metrics_get() const;
 			[[nodiscard("Called error getter and discarded its return value")]]
 			fan_controller::ErrorState error_state_get() const;
 
@@ -66,7 +77,8 @@ namespace fan_controller {
 
 			struct TachometerState {
 				pulse_reader_interface::PulseSignalInterface& signal;
-				unsigned int speed_rpm = 0;
+				unsigned int current_speed_rpm = 0;
+				unsigned int previous_speed_rpm = 0;
 			};
 
 			struct SystemState {
@@ -79,6 +91,8 @@ namespace fan_controller {
 			fan_controller::FourWireFan::PwmState pwm;
 			fan_controller::FourWireFan::TachometerState tachometer;
 			fan_controller::FourWireFan::SystemState system;
+
+			fan_controller::FanMetricsState metrics;
 
 			fan_controller::ErrorState error;
 	};
