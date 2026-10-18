@@ -62,7 +62,7 @@ namespace threads_scheduler {
 			};
 
 			struct ReadingsState {
-				int temp_c_x10 = 0;
+				int temp_c_x100 = 0;
 				unsigned int measured_speed_rpm = 0;
 				unsigned int target_speed_rpm = 0;
 			};

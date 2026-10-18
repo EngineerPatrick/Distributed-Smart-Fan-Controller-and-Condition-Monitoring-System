@@ -67,6 +67,7 @@ int main(void) {
 		{250, 500}, {280, 1300}, {300, 2000}, {301, 2000}, {302, 2000},
 		{303, 2000}, {304, 2000}, {305, 2000}, {306, 2000}, {307, 2000}
 	}};
+
 	static fan_curve::FanCurve sample_curve{sample_nodes};
 
 	static control_thread::ControlThread feedback_controller{arctic_p12_max, room_temperature, sample_curve};
