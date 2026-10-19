@@ -3,6 +3,7 @@
 
 #include "fan_controller.hpp"
 #include "fan_curve.hpp"
+#include "feedback_controller.hpp"
 #include "temperature_reader_interface.hpp"
 
 namespace control_thread {
@@ -16,6 +17,7 @@ namespace control_thread {
 		ControlFanStop,
 		ControlFanSpeedUnready,
 		ControlFanSpeedMeasure,
+		ControlFanDutyUpdate,
 		TemperatureReaderUnready,
 		TemperatureReaderValue,
 		FanCurveUnready,
@@ -29,7 +31,8 @@ namespace control_thread {
 			ControlThread(
 				fan_controller::FourWireFan& control_fan,
 				temperature_reader_interface::TemperatureSignalInterface& temperature_signal,
-				fan_curve::FanCurve& fan_curve
+				fan_curve::FanCurve& fan_curve,
+				feedback_controller::ClosedLoopSystem& smart_controller
 			);
 
 			/*
@@ -51,17 +54,35 @@ namespace control_thread {
 
 		private:
 
+			struct TargetSpeedState {
+				unsigned int current_rpm = 0;
+				unsigned int previous_rpm = 0;
+				unsigned int delta_rpm = 0;
+			};
+
+			struct ControlState {
+				int temp_c_x100 = 0;
+				control_thread::ControlThread::TargetSpeedState target_speed;
+				unsigned int duty_cycle_x100 = 0;
+				unsigned int measured_speed_rpm = 0;
+				feedback_controller::FeedbackCode feedback = feedback_controller::FeedbackCode::SignalUnstable;
+			};
+
 			struct SystemState {
 				bool control_fan_acquired = false;
 				bool temperature_signal_acquired = false;
 				bool fan_curve_acquired = false;
 				bool cycle_ready = false;
+				bool first_cycle = false;
 			};
 
 			fan_controller::FourWireFan& control_fan;
 			temperature_reader_interface::TemperatureSignalInterface& temperature_signal;
 			fan_curve::FanCurve& fan_curve;
+			feedback_controller::ClosedLoopSystem& smart_controller;
+			fan_controller::FanMetricsState fan_metrics;
 
+			control_thread::ControlThread::ControlState control;
 			control_thread::ControlThread::SystemState system;
 
 			control_thread::ErrorCode error = control_thread::ErrorCode::Ok;

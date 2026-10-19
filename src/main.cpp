@@ -21,6 +21,7 @@
 #include "fan_controller.hpp"
 
 #include "fan_curve.hpp"
+#include "feedback_controller.hpp"
 
 #include "control_thread.hpp"
 #include "report_thread.hpp"
@@ -70,7 +71,9 @@ int main(void) {
 
 	static fan_curve::FanCurve sample_curve{sample_nodes};
 
-	static control_thread::ControlThread feedback_controller{arctic_p12_max, room_temperature, sample_curve};
+	static feedback_controller::ClosedLoopSystem smart_controller;
+
+	static control_thread::ControlThread feedback_controller{arctic_p12_max, room_temperature, sample_curve, smart_controller};
 
 	static report_thread::ReportThread report_updater{controller_state};
 
