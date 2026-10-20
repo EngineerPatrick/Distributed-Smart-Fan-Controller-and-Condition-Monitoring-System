@@ -1,16 +1,3 @@
-/**
-*
-*	@file		temperature_reader.cpp
-*
-*	@brief		Implementation for the temperature_reader module
-*
-*	@details	Employs Zephyr's Sensor API to read the temperature
-*
-*				Integrates Zephyr's decoder and Q31 formula to obtain
-*				the temperature value in hundredth of Celsius degrees
-*
-*/
-
 #include "temperature_reader.hpp"
 #include "temperature_reader_interface.hpp"
 #include <cstdint>

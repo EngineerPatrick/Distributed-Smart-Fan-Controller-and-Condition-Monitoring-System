@@ -1,16 +1,3 @@
-/**
-*
-*	@file		readings_reporter.cpp
-*
-*	@brief		Implementation for the readings_reporter module
-*
-*	@details	Prints multiple strings and	digits on the display
-*
-*				Handles integer to string conversion without allocating
-*				dynamic memory to enforce embedded systems constraints
-*
-*/
-
 #include "readings_reporter.hpp"
 #include "grid_printer_interface.hpp"
 #include <cstddef>

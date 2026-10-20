@@ -1,16 +1,3 @@
-/**
-*
-*	@file		pwm_generator.cpp
-*
-*	@brief		Implementation for the pwm module
-*
-*	@details	Acquires Zephyr's PWM resource, keeps track of its return
-*				values and performs start/stop operations
-*
-*				Supports waveform parameters setting and getting
-*
-*/
-
 #include "pwm_generator.hpp"
 #include "pwm_generator_interface.hpp"
 #include <zephyr/device.h>
