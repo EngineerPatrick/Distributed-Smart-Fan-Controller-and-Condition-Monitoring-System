@@ -149,7 +149,7 @@ fan_controller::ErrorState fan_controller::FourWireFan::speed_measure(unsigned i
  	return this->error;
 }
 
-fan_controller::ErrorState fan_controller::FourWireFan::duty_cycle_update(unsigned int duty_cycle_x100) {
+fan_controller::ErrorState fan_controller::FourWireFan::duty_cycle_update(const unsigned int duty_cycle_x100) {
 
 	if (!(this->system.pwm_ready && this->system.tachometer_ready)) {
 		this->error = {fan_controller::ErrorCode::DutyCycleUpdateUnready, fan_controller::ErrorCode::Ok, fan_controller::ErrorCode::Ok};

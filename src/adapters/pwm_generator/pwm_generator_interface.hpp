@@ -20,7 +20,7 @@ namespace pwm_generator_interface {
 
 		public:
 
-			virtual pwm_generator_interface::ErrorCode set(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) = 0;
+			virtual pwm_generator_interface::ErrorCode set(const unsigned long long int waveform_period_ns, const unsigned long long int waveform_pulse_width_ns) = 0;
 			virtual pwm_generator_interface::ErrorCode stop() = 0;
 
 			virtual void params_get(unsigned long long int& waveform_period_ns, unsigned long long int& waveform_pulse_width_ns) const = 0;

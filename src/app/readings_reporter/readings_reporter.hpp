@@ -34,8 +34,8 @@ namespace readings_reporter {
 			Dashboard& operator=(Dashboard&&) = delete;
 
 			readings_reporter::ErrorCode structure_print();
-			readings_reporter::ErrorCode temp_value_print(int temp_c_x10);
-			readings_reporter::ErrorCode speed_value_print(unsigned int speed_rpm);
+			readings_reporter::ErrorCode temp_value_print(const int temp_c_x10);
+			readings_reporter::ErrorCode speed_value_print(const unsigned int speed_rpm);
 
 			[[nodiscard("Called error getter and discarded its return value")]]
 			readings_reporter::ErrorCode error_get() const;

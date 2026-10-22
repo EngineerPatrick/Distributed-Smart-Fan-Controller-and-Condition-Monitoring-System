@@ -42,7 +42,7 @@ namespace pulse_reader {
 
 			struct CounterState {
 				const counter_capture_dt_spec timer = {};
-				std::uint64_t resolution_ticks = 0;
+				const std::uint64_t resolution_ticks = 0;
 			};
 
 			struct CaptureState {

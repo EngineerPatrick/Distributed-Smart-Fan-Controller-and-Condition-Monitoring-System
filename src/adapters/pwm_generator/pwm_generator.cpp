@@ -15,7 +15,7 @@ timer{timer_device} {
 	this->error = {pwm_generator_interface::ErrorCode::Ok, 0};
 }
 
-pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::set(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) {
+pwm_generator_interface::ErrorCode pwm_generator::PwmSignal::set(const unsigned long long int waveform_period_ns, const unsigned long long int waveform_pulse_width_ns) {
 
 	if (!this->system.pwm_acquired) {
 		this->error = {pwm_generator_interface::ErrorCode::PwmUnready, 0};

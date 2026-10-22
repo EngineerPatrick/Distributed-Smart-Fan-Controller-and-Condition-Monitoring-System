@@ -159,7 +159,7 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::empty_digit_handler(u
 	return this->error;
 }
 
-readings_reporter::ErrorCode readings_reporter::Dashboard::temp_value_print(int temp_c_x10) {
+readings_reporter::ErrorCode readings_reporter::Dashboard::temp_value_print(const int temp_c_x10) {
 	std::array<unsigned int, 3> digits = {0, 0, 0};
 
 	if (!this->system.structure_ready) {
@@ -228,7 +228,7 @@ readings_reporter::ErrorCode readings_reporter::Dashboard::temp_value_print(int 
 	return this->error;
 }
 
-readings_reporter::ErrorCode readings_reporter::Dashboard::speed_value_print(unsigned int speed_rpm) {
+readings_reporter::ErrorCode readings_reporter::Dashboard::speed_value_print(const unsigned int speed_rpm) {
 	std::array<unsigned int, 4> digits = {0, 0, 0, 0};
 
 	if (!this->system.structure_ready) {

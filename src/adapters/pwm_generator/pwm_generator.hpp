@@ -23,7 +23,7 @@ namespace pwm_generator {
 			PwmSignal& operator=(const PwmSignal&) = delete;
 			PwmSignal& operator=(PwmSignal&&) = delete;
 
-			pwm_generator_interface::ErrorCode set(unsigned long long int waveform_period_ns, unsigned long long int waveform_pulse_width_ns) override;
+			pwm_generator_interface::ErrorCode set(const unsigned long long int waveform_period_ns, const unsigned long long int waveform_pulse_width_ns) override;
 			pwm_generator_interface::ErrorCode stop() override;
 
 			void params_get(unsigned long long int& waveform_period_ns, unsigned long long int& waveform_pulse_width_ns) const override;

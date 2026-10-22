@@ -29,7 +29,7 @@ report_thread::ErrorCode report_thread::ReportThread::boot() {
 	return this->error;
 }
 
-report_thread::ErrorCode report_thread::ReportThread::update(int temp_c_x10, unsigned int speed_rpm) {
+report_thread::ErrorCode report_thread::ReportThread::update(const int temp_c_x10, const unsigned int speed_rpm) {
 
 	if (!this->system.update_ready) {
 		this->error = report_thread::ErrorCode::UpdateUnready;

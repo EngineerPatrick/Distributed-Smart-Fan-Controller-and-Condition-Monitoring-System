@@ -31,7 +31,7 @@ namespace report_thread {
 			ReportThread& operator=(ReportThread&&) = delete;
 
 			report_thread::ErrorCode boot();
-			report_thread::ErrorCode update(int measured_temp_c_x10, unsigned int speed_rpm);
+			report_thread::ErrorCode update(const int measured_temp_c_x10, const unsigned int speed_rpm);
 
 			[[nodiscard("Called error getter and discarded its return value")]]
 			report_thread::ErrorCode error_get() const;

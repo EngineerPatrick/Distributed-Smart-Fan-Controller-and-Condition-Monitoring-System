@@ -60,7 +60,7 @@ namespace fan_controller {
 			fan_controller::ErrorState boot();
 			fan_controller::ErrorState stop();
 			fan_controller::ErrorState speed_measure(unsigned int& measured_speed_rpm);
-			fan_controller::ErrorState duty_cycle_update(unsigned int duty_cycle_x100);
+			fan_controller::ErrorState duty_cycle_update(const unsigned int duty_cycle_x100);
 
 			void params_get(unsigned long long int& period_ns, unsigned int& duty_cycle_x100, unsigned int& speed_rpm) const;
 			fan_controller::FanMetricsState metrics_get() const;
